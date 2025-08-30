@@ -11,23 +11,34 @@ This testing framework allows complete validation of the FLIR Boson+ V4L2 driver
 
 ## Quick Start
 
-### 1. Build for Simulation Mode
-
+### Testing (No Hardware Required)
 ```bash
-make clean && make simulation
-# or: make sim
+# 1. Build simulation mode
+make sim
+
+# 2. Test protocol compliance (works without module loading)
+python3 test_fslp_validator.py
+
+# 3. Load necessary modules
+sudo modprobe videodev
+sudo modprobe v4l2-async
+
+# 4. Load module & run simulation tests
+sudo insmod flir-boson.ko
+python3 test_simulation_mode.py
+sudo rmmod flir_boson
+
+# 5. Monitor logs (optional)
+sudo dmesg | grep FSLP_SIM
 ```
 
-### 2. Run Complete Test Suite
+### Production (Hardware Required)
 ```bash
-sudo python3 test_simulation_mode.py
-```
+# 1. Build hardware mode
+make hardware
 
-### 3. Build for Hardware Mode
-
-```bash
-make clean && make hardware
-# or: make hw
+# 2. Deploy with device tree
+# (requires FLIR Boson+ camera connected)
 ```
 
 ## Test Components
@@ -42,31 +53,24 @@ Validates FSLP protocol implementation against SDK specifications:
 - ✅ Error handling verification
 
 ```bash
-# Run standalone protocol validation
 python3 test_fslp_validator.py
-
-# Expected output:
-# 🎉 ALL TESTS PASSED - FSLP Implementation is SDK Compliant!
+# Output: 🎉 ALL TESTS PASSED - FSLP Implementation is SDK Compliant!
 ```
 
 ### Simulation Mode Test Runner (`test_simulation_mode.py`)
 
-Complete hardware-less testing framework:
-- ✅ Kernel module loading/unloading
+Tests loaded simulation module:
+- ✅ Module status verification
 - ✅ Platform device registration
 - ✅ V4L2 subdevice creation
-- ✅ I2C simulation with printk logging
+- ✅ I2C simulation logging
 - ✅ Protocol compliance verification
 
 ```bash
-# Run full simulation test suite
-sudo python3 test_simulation_mode.py
-
-# Unload module only
-sudo python3 test_simulation_mode.py --unload
-
-# Show help
-sudo python3 test_simulation_mode.py --help
+# Prerequisites: module must be loaded first
+sudo insmod flir-boson.ko
+python3 test_simulation_mode.py
+sudo rmmod flir_boson
 ```
 
 ## Expected Test Output
@@ -120,16 +124,19 @@ sudo dmesg -w | grep -i "FSLP_SIM"
 # [12345.681] flir-boson-sim flir-boson-sim: FSLP_SIM: Valid frame, payload_len=16
 ```
 
-### Check Module Status
+### Manual Module Management
 ```bash
-# Check if module is loaded
+# Load simulation module
+sudo insmod flir-boson.ko
+
+# Check module status
 lsmod | grep flir_boson
 
-# Check platform devices
-ls /sys/bus/platform/devices/ | grep flir
+# Check kernel logs
+dmesg | tail -10 | grep -i "flir\|boson"
 
-# View recent kernel messages
-dmesg | tail -20 | grep -i "flir\|boson"
+# Unload module
+sudo rmmod flir_boson
 ```
 
 ## Protocol Validation Details

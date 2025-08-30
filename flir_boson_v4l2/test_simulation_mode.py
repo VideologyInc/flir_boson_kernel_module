@@ -4,13 +4,12 @@ FLIR Boson+ Simulation Mode Test Runner
 ======================================
 
 Complete hardware-less testing framework that:
-1. Loads the simulation kernel module
 2. Tests IOCTL interface functionality
 3. Validates FSLP protocol compliance
 4. Generates comprehensive test reports
 
 Usage:
-    sudo python3 test_simulation_mode.py [--unload-only]
+    sudo python3 test_simulation_mode.py
 """
 
 import subprocess
@@ -51,43 +50,6 @@ class FLIRSimulationTester:
         """Check if simulation module is loaded"""
         result = self.run_command(f"lsmod | grep {self.module_name}", ignore_errors=True)
         return result and result.returncode == 0
-
-    def load_simulation_module(self):
-        """Load simulation module"""
-        self.log("Loading FLIR Boson+ simulation module...")
-
-        # Check if already loaded
-        if self.check_module_loaded():
-            self.log("Module already loaded, unloading first...")
-            self.unload_module()
-
-        # Load the module
-        result = self.run_command(f"sudo insmod flir-boson.ko")
-        if result is None:
-            return False
-
-        # Verify loaded
-        time.sleep(1)
-        if self.check_module_loaded():
-            self.log("✅ Simulation module loaded successfully")
-            return True
-        else:
-            self.log("❌ Failed to load simulation module", "ERROR")
-            return False
-
-    def unload_module(self):
-        """Unload simulation module"""
-        self.log("Unloading FLIR Boson+ module...")
-
-        result = self.run_command(f"sudo rmmod {self.module_name}", ignore_errors=True)
-        time.sleep(1)
-
-        if not self.check_module_loaded():
-            self.log("✅ Module unloaded successfully")
-            return True
-        else:
-            self.log("❌ Failed to unload module", "ERROR")
-            return False
 
     def check_device_created(self):
         """Check if V4L2 device was created"""
@@ -179,42 +141,27 @@ class FLIRSimulationTester:
         print("="*70)
 
         try:
-            # Test 1: Module Loading
-            self.log("\n🔧 Test 1: Module Loading")
-            self.test_results["Module Loading"] = self.load_simulation_module()
 
-            if self.test_results["Module Loading"]:
-                # Test 2: Device Creation
-                self.log("\n🔧 Test 2: Device Creation")
-                self.test_results["Device Creation"] = self.check_device_created()
+            # Test 2: Device Creation
+            self.log("\n🔧 Test 2: Device Creation")
+            self.test_results["Device Creation"] = self.check_device_created()
 
-                # Test 3: Kernel Log Activity
-                self.log("\n🔧 Test 3: Kernel Log Activity")
-                self.test_results["Kernel Log Activity"] = self.check_kernel_logs()
+            # Test 3: Kernel Log Activity
+            self.log("\n🔧 Test 3: Kernel Log Activity")
+            self.test_results["Kernel Log Activity"] = self.check_kernel_logs()
 
-                # Test 4: Protocol Validation
-                self.log("\n🔧 Test 4: FSLP Protocol Validation")
-                self.test_results["FSLP Protocol Validation"] = self.test_protocol_validator()
-
-                # Clean up
-                self.log("\n🧹 Cleanup: Unloading module")
-                self.unload_module()
-            else:
-                # If module loading fails, skip other tests
-                self.test_results["Device Creation"] = False
-                self.test_results["Kernel Log Activity"] = False
-                self.test_results["FSLP Protocol Validation"] = False
+            # Test 4: Protocol Validation
+            self.log("\n🔧 Test 4: FSLP Protocol Validation")
+            self.test_results["FSLP Protocol Validation"] = self.test_protocol_validator()
 
             # Generate final report
             return self.generate_test_report()
 
         except KeyboardInterrupt:
             self.log("\nTest interrupted by user", "WARN")
-            self.unload_module()
             return False
         except Exception as e:
             self.log(f"Unexpected error: {e}", "ERROR")
-            self.unload_module()
             return False
 
 def print_usage():
@@ -223,36 +170,21 @@ def print_usage():
 FLIR Boson+ Simulation Mode Test Runner
 =======================================
 
-This script provides hardware-less testing of the FLIR Boson+ V4L2 driver
-using simulation mode. It validates protocol compliance and driver functionality
-without requiring actual hardware.
-
 Prerequisites:
-  - Compiled driver with FLIR_SIMULATION_MODE enabled
-  - Root/sudo access for module loading
+  - Build simulation mode: make sim
+  - Load module: sudo insmod flir-boson.ko
   - Python 3.6+
 
 Usage:
-  sudo python3 test_simulation_mode.py           # Run full test suite
-  sudo python3 test_simulation_mode.py --help   # Show this help
-  sudo python3 test_simulation_mode.py --unload # Unload module only
+  python3 test_simulation_mode.py        # Run test suite
+  python3 test_simulation_mode.py --help # Show this help
 
-Test Coverage:
-  ✅ Kernel module loading/unloading
-  ✅ Platform device registration
-  ✅ V4L2 subdevice creation
-  ✅ Simulation mode I2C logging
-  ✅ FSLP protocol compliance (100% SDK match)
-  ✅ Command sequence validation
-  ✅ Error handling verification
+Manual Commands:
+  sudo insmod flir-boson.ko              # Load module
+  python3 test_simulation_mode.py        # Run tests
+  sudo rmmod flir_boson                  # Unload module
 
-Expected Output:
-  - Kernel log messages with "FSLP_SIM" prefix
-  - Protocol validation with hex dumps
-  - Complete test report with pass/fail status
-
-For debugging, monitor kernel logs:
-  sudo dmesg -w | grep -i "flir\\|boson\\|FSLP_SIM"
+Monitor logs: sudo dmesg -w | grep FSLP_SIM
 """)
 
 def main():
@@ -263,28 +195,10 @@ def main():
         print_usage()
         return 0
 
-    # Check if running as root
-    if os.geteuid() != 0:
-        print("❌ Error: This script requires root privileges for module loading.")
-        print("   Please run with: sudo python3 test_simulation_mode.py")
-        return 1
-
-    # Check if we're in the right directory
-    if not os.path.exists("flir-boson.ko"):
-        print("❌ Error: flir-boson.ko not found in current directory.")
-        print("   Please run 'make' first, then run this script from the flir_boson_v4l2 directory.")
-        return 1
-
     # Create tester instance
     tester = FLIRSimulationTester(verbose=True)
 
-    # Handle unload-only option
-    if len(sys.argv) > 1 and sys.argv[1] == '--unload':
-        print("Unloading FLIR Boson+ module...")
-        success = tester.unload_module()
-        return 0 if success else 1
-
-    # Run full test suite
+    # Run test suite (assumes module already loaded)
     success = tester.run_full_simulation_test()
 
     return 0 if success else 1

@@ -144,11 +144,11 @@ static long flir_boson_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg
 	mutex_lock(&sensor->lock);
 
 	switch (cmd) {
-	case FLIR_BOSON_IOCTL_FSLP_CMD:
+	case FLIR_BOSON_IOCTL_FSLP_FRAME:
 		fslp_cmd = (struct flir_boson_ioctl_fslp *)arg;
-		ret = flir_boson_fslp_send_cmd(sensor, fslp_cmd->cmd_id,
-					       fslp_cmd->data, fslp_cmd->tx_len,
-					       fslp_cmd->data, fslp_cmd->rx_len);
+		ret = flir_boson_fslp_send_frame(sensor,
+						 fslp_cmd->data, fslp_cmd->tx_len,
+						 fslp_cmd->data, fslp_cmd->rx_len);
 		break;
 
 	case FLIR_BOSON_IOCTL_POWER_STATE:

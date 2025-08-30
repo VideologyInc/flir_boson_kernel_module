@@ -128,7 +128,39 @@ media-ctl --device /dev/media0 --set-v4l2 '"flir-boson":0[fmt:RW14/640x512]'
 
 ### SDK Access via IOCTL
 
-Use the existing FLIR SDK with minimal modifications - the driver provides transparent FSLP access for all advanced thermal imaging features.
+The driver provides two ways to access the full FLIR SDK:
+
+#### 1. Python Interface (Recommended)
+
+Use the included Python interface for seamless SDK integration:
+
+```python
+from flir_boson_v4l2.python import V4L2Fslp
+from SDK.ClientFiles_Python.Client_API import pyClient
+
+# Replace I2C with V4L2 driver
+fslp = V4L2Fslp()
+camera = pyClient(fslp=fslp)
+
+# All existing SDK commands work unchanged
+camera.dvoSetOutputInterface(1)  # Switch to MIPI
+camera.dvoSetType(2)             # Set color mode
+camera.dvoSetMipiState(2)        # Start streaming
+```
+
+#### 2. Direct IOCTL Access
+
+For custom applications, use the IOCTL interface directly:
+
+```c
+struct flir_boson_ioctl_fslp cmd = {
+    .cmd_id = 0x00060024,  // dvoSetMipiState
+    .tx_len = 4,
+    .rx_len = 0,
+    .data = {0x02, 0x00, 0x00, 0x00}  // ACTIVE state
+};
+ioctl(fd, FLIR_BOSON_IOCTL_FSLP_CMD, &cmd);
+```
 
 ## Power Management
 

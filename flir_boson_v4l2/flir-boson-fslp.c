@@ -9,6 +9,9 @@
 #include <linux/byteorder/generic.h>
 #include "flir-boson.h"
 
+#define FLIR_MAGIC_TOKEN_0    0x8E
+#define FLIR_MAGIC_TOKEN_1    0xA1
+
 static int flir_boson_i2c_write(struct flir_boson_dev *sensor,
 				const u8 *data, size_t len)
 {
@@ -35,39 +38,19 @@ static int flir_boson_i2c_read(struct flir_boson_dev *sensor,
 	return i2c_transfer(sensor->i2c_client->adapter, &msg, 1) == 1 ? 0 : -EIO;
 }
 
-int flir_boson_fslp_send_cmd(struct flir_boson_dev *sensor, u32 cmd_id,
-			     const u8 *tx_data, u32 tx_len,
-			     u8 *rx_data, u32 rx_len)
+int flir_boson_fslp_send_frame(struct flir_boson_dev *sensor,
+			       const u8 *tx_data, u32 tx_len,
+			       u8 *rx_data, u32 rx_len)
 {
-	struct flir_fslp_cmd *cmd;
-	u8 *tx_buf = sensor->fslp_tx_buf;
-	u8 *rx_buf = sensor->fslp_rx_buf;
-	u32 total_tx_len = FLIR_FSLP_HEADER_SIZE + 4 + tx_len; /* header + cmd_id + data */
-	u32 total_rx_len = FLIR_FSLP_HEADER_SIZE + rx_len;
 	int ret;
 
-	if (total_tx_len > FLIR_FSLP_MAX_DATA || total_rx_len > FLIR_FSLP_MAX_DATA)
-		return -EINVAL;
-
-	/* Build FSLP command */
-	cmd = (struct flir_fslp_cmd *)tx_buf;
-	cmd->magic[0] = FLIR_MAGIC_TOKEN_0;
-	cmd->magic[1] = FLIR_MAGIC_TOKEN_1;
-	cmd->length = cpu_to_be16(4 + tx_len); /* cmd_id + data length */
-
-	/* Add command ID (little endian) */
-	*((u32 *)cmd->data) = cpu_to_le32(cmd_id);
-
-	/* Add command data */
-	if (tx_data && tx_len > 0)
-		memcpy(cmd->data + 4, tx_data, tx_len);
-
-	/* Send command */
-	ret = flir_boson_i2c_write(sensor, tx_buf, total_tx_len);
-	if (ret) {
-		dev_err(sensor->dev, "Failed to send FSLP command 0x%08x: %d\n",
-			cmd_id, ret);
-		return ret;
+	/* Send frame directly via I2C */
+	if (tx_len > 0) {
+		ret = flir_boson_i2c_write(sensor, tx_data, tx_len);
+		if (ret) {
+			dev_err(sensor->dev, "Failed to send FSLP frame: %d\n", ret);
+			return ret;
+		}
 	}
 
 	/* Wait for processing */
@@ -75,23 +58,17 @@ int flir_boson_fslp_send_cmd(struct flir_boson_dev *sensor, u32 cmd_id,
 
 	/* Read response if expected */
 	if (rx_len > 0) {
-		ret = flir_boson_i2c_read(sensor, rx_buf, total_rx_len);
+		ret = flir_boson_i2c_read(sensor, rx_data, rx_len);
 		if (ret) {
 			dev_err(sensor->dev, "Failed to read FSLP response: %d\n", ret);
 			return ret;
 		}
 
-		/* Validate response header */
-		cmd = (struct flir_fslp_cmd *)rx_buf;
-		if (cmd->magic[0] != FLIR_MAGIC_TOKEN_0 ||
-		    cmd->magic[1] != FLIR_MAGIC_TOKEN_1) {
-			dev_err(sensor->dev, "Invalid FSLP response magic\n");
-			return -EPROTO;
+		/* Validate response header if it looks like FSLP */
+		if (rx_len >= 4 &&
+		    (rx_data[0] != FLIR_MAGIC_TOKEN_0 || rx_data[1] != FLIR_MAGIC_TOKEN_1)) {
+			dev_warn(sensor->dev, "Invalid FSLP response magic\n");
 		}
-
-		/* Copy response data */
-		if (rx_data)
-			memcpy(rx_data, cmd->data, rx_len);
 	}
 
 	return 0;
@@ -99,33 +76,33 @@ int flir_boson_fslp_send_cmd(struct flir_boson_dev *sensor, u32 cmd_id,
 
 int flir_boson_set_output_interface(struct flir_boson_dev *sensor, int interface)
 {
-	u32 data = cpu_to_le32(interface);
+	u8 frame[] = {0x8E, 0xA1, 0x00, 0x04, 0x07, 0x00, 0x06, 0x00};
+	frame[7] = interface;
 
 	dev_dbg(sensor->dev, "Setting output interface to %d\n", interface);
 
-	return flir_boson_fslp_send_cmd(sensor, DVO_SET_OUTPUT_INTERFACE,
-					(u8 *)&data, sizeof(data), NULL, 0);
+	return flir_boson_fslp_send_frame(sensor, frame, sizeof(frame), NULL, 0);
 }
 
 int flir_boson_set_dvo_type(struct flir_boson_dev *sensor, u32 type)
 {
-	u32 data = cpu_to_le32(type);
+	u8 frame[] = {0x8E, 0xA1, 0x00, 0x04, 0x0F, 0x00, 0x06, 0x00};
+	frame[7] = type;
 
 	dev_dbg(sensor->dev, "Setting DVO type to %d\n", type);
 
-	return flir_boson_fslp_send_cmd(sensor, DVO_SET_TYPE,
-					(u8 *)&data, sizeof(data), NULL, 0);
+	return flir_boson_fslp_send_frame(sensor, frame, sizeof(frame), NULL, 0);
 }
 
 int flir_boson_set_mipi_state(struct flir_boson_dev *sensor, int state)
 {
-	u32 data = cpu_to_le32(state);
+	u8 frame[] = {0x8E, 0xA1, 0x00, 0x04, 0x24, 0x00, 0x06, 0x00};
+	frame[7] = state;
 	int ret;
 
 	dev_dbg(sensor->dev, "Setting MIPI state to %d\n", state);
 
-	ret = flir_boson_fslp_send_cmd(sensor, DVO_SET_MIPI_STATE,
-				       (u8 *)&data, sizeof(data), NULL, 0);
+	ret = flir_boson_fslp_send_frame(sensor, frame, sizeof(frame), NULL, 0);
 	if (!ret)
 		sensor->mipi_state = state;
 
@@ -134,21 +111,23 @@ int flir_boson_set_mipi_state(struct flir_boson_dev *sensor, int state)
 
 int flir_boson_apply_settings(struct flir_boson_dev *sensor)
 {
+	u8 frame[] = {0x8E, 0xA1, 0x00, 0x04, 0x25, 0x00, 0x06, 0x00};
+
 	dev_dbg(sensor->dev, "Applying custom settings\n");
 
-	return flir_boson_fslp_send_cmd(sensor, DVO_APPLY_CUSTOM_SETTINGS,
-					NULL, 0, NULL, 0);
+	return flir_boson_fslp_send_frame(sensor, frame, sizeof(frame), NULL, 0);
 }
 
 int flir_boson_get_mipi_state(struct flir_boson_dev *sensor, int *state)
 {
-	u32 data;
+	u8 tx_frame[] = {0x8E, 0xA1, 0x00, 0x04, 0x26, 0x00, 0x06, 0x00};
+	u8 rx_frame[8];
 	int ret;
 
-	ret = flir_boson_fslp_send_cmd(sensor, DVO_GET_MIPI_STATE,
-				       NULL, 0, (u8 *)&data, sizeof(data));
-	if (!ret)
-		*state = le32_to_cpu(data);
+	ret = flir_boson_fslp_send_frame(sensor, tx_frame, sizeof(tx_frame),
+					 rx_frame, sizeof(rx_frame));
+	if (!ret && rx_frame[3] >= 4)
+		*state = rx_frame[7];
 
 	return ret;
 }

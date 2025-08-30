@@ -27,7 +27,7 @@
 #define FLIR_FSLP_MAX_DATA    256
 
 /* FLIR SDK Command Codes */
-#define DVO_SET_OUTPUT_INTERFACE    0x00060007
+#define DVO_SET_OUTPUT_INTERFACE   0x00060007
 #define DVO_SET_TYPE               0x0006000F
 #define DVO_SET_MIPI_STATE         0x00060024
 #define DVO_APPLY_CUSTOM_SETTINGS  0x00060025
@@ -105,21 +105,20 @@ struct flir_boson_dev {
 
 /* IOCTL Interface */
 struct flir_boson_ioctl_fslp {
-	u32 cmd_id;
 	u32 tx_len;
 	u32 rx_len;
 	u8 data[FLIR_FSLP_MAX_DATA];
 };
 
 /* IOCTL Commands */
-#define FLIR_BOSON_IOCTL_FSLP_CMD     _IOWR('F', 0x01, struct flir_boson_ioctl_fslp)
+#define FLIR_BOSON_IOCTL_FSLP_FRAME   _IOWR('F', 0x01, struct flir_boson_ioctl_fslp)
 #define FLIR_BOSON_IOCTL_POWER_STATE  _IOW('F', 0x02, int)
 #define FLIR_BOSON_IOCTL_GET_STATUS   _IOR('F', 0x03, u32)
 
 /* Function prototypes */
-int flir_boson_fslp_send_cmd(struct flir_boson_dev *sensor, u32 cmd_id,
-			     const u8 *tx_data, u32 tx_len,
-			     u8 *rx_data, u32 rx_len);
+int flir_boson_fslp_send_frame(struct flir_boson_dev *sensor,
+			       const u8 *tx_data, u32 tx_len,
+			       u8 *rx_data, u32 rx_len);
 int flir_boson_set_mipi_state(struct flir_boson_dev *sensor, int state);
 int flir_boson_set_output_interface(struct flir_boson_dev *sensor, int interface);
 int flir_boson_set_dvo_type(struct flir_boson_dev *sensor, u32 type);

@@ -97,10 +97,10 @@ struct flir_boson_dev {
 	int mipi_state;
 	bool streaming;
 	bool powered;
-
-	/* FSLP communication */
-	u8 fslp_tx_buf[FLIR_FSLP_MAX_DATA];
-	u8 fslp_rx_buf[FLIR_FSLP_MAX_DATA];
+/* FSLP communication */
+u8 fslp_tx_buf[FLIR_FSLP_MAX_DATA];
+u8 fslp_rx_buf[FLIR_FSLP_MAX_DATA];
+u32 command_count; /* Sequence number for commands */
 };
 
 /* IOCTL Interface */
@@ -115,15 +115,28 @@ struct flir_boson_ioctl_fslp {
 #define FLIR_BOSON_IOCTL_POWER_STATE  _IOW('F', 0x02, int)
 #define FLIR_BOSON_IOCTL_GET_STATUS   _IOR('F', 0x03, u32)
 
-/* Function prototypes */
-int flir_boson_fslp_send_frame(struct flir_boson_dev *sensor,
-			       const u8 *tx_data, u32 tx_len,
-			       u8 *rx_data, u32 rx_len);
+/* Function prototypes - Layer 1: I2C FSLP Framing (matches I2CFslp.py) */
+int flir_fslp_send_frame(struct flir_boson_dev *sensor, u8 channel_id,
+			 const u8 *payload, u32 payload_len);
+int flir_fslp_read_frame(struct flir_boson_dev *sensor, u8 channel_id,
+			 u8 *payload, u32 expected_len);
+
+/* Layer 2: Command Dispatcher (matches Client_Dispatcher.py/c) */
+int flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u32 fn_id,
+			    const u8 *send_data, u32 send_bytes,
+			    u8 *receive_data, u32 *receive_bytes);
+
+/* Layer 3: Command Packagers (SDK-compatible API) */
 int flir_boson_set_mipi_state(struct flir_boson_dev *sensor, int state);
 int flir_boson_set_output_interface(struct flir_boson_dev *sensor, int interface);
 int flir_boson_set_dvo_type(struct flir_boson_dev *sensor, u32 type);
 int flir_boson_apply_settings(struct flir_boson_dev *sensor);
 int flir_boson_get_mipi_state(struct flir_boson_dev *sensor, int *state);
+
+/* Legacy compatibility */
+int flir_boson_fslp_send_frame(struct flir_boson_dev *sensor,
+			       const u8 *tx_data, u32 tx_len,
+			       u8 *rx_data, u32 rx_len);
 
 /* Utility macros */
 #define to_flir_boson_dev(sd) container_of(sd, struct flir_boson_dev, sd)

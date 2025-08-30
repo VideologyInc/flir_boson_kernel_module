@@ -114,6 +114,7 @@ static int flir_boson_s_power(struct v4l2_subdev *sd, int on)
 
 		sensor->powered = true;
 		sensor->mipi_state = FLIR_MIPI_STATE_OFF;
+		sensor->command_count = 0; /* Initialize sequence counter for SDK commands */
 	} else if (!on && sensor->powered) {
 		/* Stop streaming if active */
 		if (sensor->streaming) {

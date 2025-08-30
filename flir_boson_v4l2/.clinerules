@@ -76,26 +76,44 @@ struct flir_boson_ioctl_fslp {
 
 ### FSLP Protocol Details
 - Magic Token: 0x8E, 0xA1
-- Header Format: magic(2) + length(2) + data(n)
-- Length: Big-endian 16-bit data length
+- Header Format: magic(2) + length(2) + seqnum(4) + fnid(4) + status(4) + data(n)
+- Length: Big-endian 16-bit data length (includes 12-byte header + data)
 - I2C Address: 0x6A (default)
+- Endianness: Big-endian for FSLP length, big-endian for command data (using UINT32_ToBytes)
 
-### Key FLIR Commands
+### FSLP Dispatcher Implementation
 ```c
-// Switch to MIPI output
-dvoSetOutputInterface(FLR_DVO_MIPI)     // 0x00060007
+// Command dispatcher similar to CLIENT_dispatcher
+static int flir_boson_fslp_dispatcher(struct flir_boson_dev *sensor,
+                                      u32 seqNum, u32 fnID,
+                                      const u8 *sendData, u32 sendBytes,
+                                      u8 *receiveData, u32 receiveBytes);
 
-// Set video format
-dvoSetType(FLR_DVO_TYPE_MONO8)          // 0x0006000F
-dvoSetType(FLR_DVO_TYPE_MONO14)         // 0x0006000F
-dvoSetType(FLR_DVO_TYPE_COLOR)          // 0x0006000F
+// UINT32_ToBytes - copied from SDK/ClientFiles_MSVC/Serializer_BuiltIn.c
+static void UINT32_ToBytes(u32 inVal, u8 *outBuff)
+{
+    u8 *outPtr = outBuff;
+    *outPtr++ = (u8)(inVal >> 24 & 0xff);  // Big-endian format
+    *outPtr++ = (u8)(inVal >> 16 & 0xff);
+    *outPtr++ = (u8)(inVal >> 8 & 0xff);
+    *outPtr = (u8)(inVal & 0xff);
+}
+```
 
-// Control MIPI state machine
-dvoSetMipiState(FLIR_MIPI_STATE_OFF)    // 0x00060024
-dvoSetMipiState(FLIR_MIPI_STATE_ACTIVE) // 0x00060024
+### Key FLIR Commands (Using Proper Command Codes)
+```c
+// Command codes from flir-boson.h
+#define DVO_SET_OUTPUT_INTERFACE   0x00060007
+#define DVO_SET_TYPE               0x0006000F
+#define DVO_SET_MIPI_STATE         0x00060024
+#define DVO_APPLY_CUSTOM_SETTINGS  0x00060025
+#define DVO_GET_MIPI_STATE         0x00060026
 
-// Apply settings
-dvoApplyCustomSettings()                // 0x00060025
+// Implementation using dispatcher
+flir_boson_set_output_interface(sensor, FLR_DVO_MIPI);
+flir_boson_set_dvo_type(sensor, FLR_DVO_TYPE_MONO8/MONO14/COLOR);
+flir_boson_set_mipi_state(sensor, FLIR_MIPI_STATE_ACTIVE);
+flir_boson_apply_settings(sensor);
 ```
 
 ### Device Tree Integration

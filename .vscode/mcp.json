@@ -1,0 +1,10 @@
+{
+	"servers": {
+		"PDF-reader": {
+			"type": "stdio",
+			"command": "mcp-pdf-reader",
+			"args": ["-pdfdir", "${workspaceFolder}", "-port", "50051"],
+		}
+	},
+	"inputs": []
+}

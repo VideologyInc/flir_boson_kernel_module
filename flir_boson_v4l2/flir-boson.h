@@ -20,6 +20,8 @@
 #define FLIR_BOSON_NAME "flir-boson"
 #define FLIR_BOSON_I2C_ADDR 0x6A
 
+/* Simulation Mode - controlled via Makefile CFLAGS */
+
 /* FSLP Protocol Constants */
 #define FLIR_MAGIC_TOKEN_0    0x8E
 #define FLIR_MAGIC_TOKEN_1    0xA1

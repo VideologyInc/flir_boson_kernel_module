@@ -15,9 +15,80 @@
 #include "flir-boson.h"
 
 /* ========================================================================
- * Layer 0: Raw I2C Transport
+ * Layer 0: Raw I2C Transport (with Simulation Mode Support)
  * ======================================================================== */
 
+#ifdef FLIR_SIMULATION_MODE
+
+/* Simulation Mode: Mock I2C with printk logging */
+static int flir_simulate_i2c_write(struct flir_boson_dev *sensor,
+				   const u8 *data, size_t len)
+{
+	int i;
+
+	dev_info(sensor->dev, "FSLP_SIM_TX: %zu bytes:", len);
+
+	/* Log frame in hex format for validation */
+	for (i = 0; i < len; i++) {
+		if (i % 16 == 0)
+			printk(KERN_CONT "\nFSLP_SIM_TX: %04X: ", i);
+		printk(KERN_CONT "%02X ", data[i]);
+	}
+	printk(KERN_CONT "\n");
+
+	/* Validate FSLP frame structure */
+	if (len >= 4 && data[0] == FLIR_MAGIC_TOKEN_0 && data[1] == FLIR_MAGIC_TOKEN_1) {
+		u16 payload_len = (data[2] << 8) | data[3];
+		dev_info(sensor->dev, "FSLP_SIM: Valid frame, payload_len=%u", payload_len);
+
+		if (len == 4 + payload_len) {
+			dev_info(sensor->dev, "FSLP_SIM: Frame length correct");
+		} else {
+			dev_warn(sensor->dev, "FSLP_SIM: Frame length mismatch: got %zu, expected %u",
+				 len, 4 + payload_len);
+		}
+	} else {
+		dev_warn(sensor->dev, "FSLP_SIM: Invalid FSLP frame");
+	}
+
+	return 0; /* Always succeed in simulation */
+}
+
+static int flir_simulate_i2c_read(struct flir_boson_dev *sensor,
+				  u8 *data, size_t len)
+{
+	/* Generate mock camera response */
+	if (len >= 16) {
+		/* Simulate realistic camera response */
+		u8 *ptr = data;
+
+		/* I2C FSLP header */
+		*ptr++ = FLIR_MAGIC_TOKEN_0;  /* 0x8E */
+		*ptr++ = FLIR_MAGIC_TOKEN_1;  /* 0xA1 */
+		*ptr++ = 0x00;                /* Length high byte */
+		*ptr++ = len - 4;             /* Length low byte */
+
+		/* Response payload header (echo sequence + command, success status) */
+		*ptr++ = 0x00; *ptr++ = 0x00; *ptr++ = 0x00; *ptr++ = 0x01; /* Sequence = 1 */
+		*ptr++ = 0x00; *ptr++ = 0x06; *ptr++ = 0x00; *ptr++ = 0x24; /* DVO_SET_MIPI_STATE */
+		*ptr++ = 0x00; *ptr++ = 0x00; *ptr++ = 0x00; *ptr++ = 0x00; /* Status = success */
+
+		/* Response data (for GET commands) */
+		if (len > 16) {
+			*ptr++ = 0x00; *ptr++ = 0x00; *ptr++ = 0x00; *ptr++ = 0x02; /* MIPI_STATE_ACTIVE */
+		}
+	}
+
+	dev_info(sensor->dev, "FSLP_SIM_RX: Generated %zu bytes response", len);
+	return 0;
+}
+
+#define flir_boson_i2c_write(sensor, data, len) flir_simulate_i2c_write(sensor, data, len)
+#define flir_boson_i2c_read(sensor, data, len) flir_simulate_i2c_read(sensor, data, len)
+
+#else
+
+/* Real Hardware Mode: Actual I2C Communication */
 static int flir_boson_i2c_write(struct flir_boson_dev *sensor,
 				const u8 *data, size_t len)
 {
@@ -43,6 +114,8 @@ static int flir_boson_i2c_read(struct flir_boson_dev *sensor,
 
 	return i2c_transfer(sensor->i2c_client->adapter, &msg, 1) == 1 ? 0 : -EIO;
 }
+
+#endif /* FLIR_SIMULATION_MODE */
 
 /* UINT32_ToBytes - copied from SDK/ClientFiles_MSVC/Serializer_BuiltIn.c */
 static void UINT32_ToBytes(u32 inVal, u8 *outBuff)

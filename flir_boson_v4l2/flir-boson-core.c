@@ -495,6 +495,115 @@ static const struct of_device_id flir_boson_dt_ids[] = {
 };
 MODULE_DEVICE_TABLE(of, flir_boson_dt_ids);
 
+#ifdef FLIR_SIMULATION_MODE
+
+/* ========================================================================
+ * Simulation Mode: Platform Device Registration (Hardware-less)
+ * ======================================================================== */
+
+#include <linux/platform_device.h>
+
+static struct flir_boson_dev *sim_sensor;
+
+static int flir_boson_sim_probe(struct platform_device *pdev)
+{
+	struct device *dev = &pdev->dev;
+	struct flir_boson_dev *sensor;
+	int ret;
+
+	dev_info(dev, "FLIR Boson+ Simulation Mode Probe");
+
+	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
+	if (!sensor)
+		return -ENOMEM;
+
+	sensor->dev = dev;
+	sensor->i2c_client = NULL; /* No I2C client in simulation mode */
+	sim_sensor = sensor;
+
+	/* Initialize mutex */
+	mutex_init(&sensor->lock);
+
+	/* Initialize device state */
+	sensor->powered = false;
+	sensor->streaming = false;
+	sensor->mipi_state = FLIR_MIPI_STATE_OFF;
+	sensor->command_count = 0;
+
+	/* Initialize default format */
+	sensor->current_format = &flir_boson_formats[0];
+	sensor->current_framesize = &flir_boson_framesizes[1]; /* 640x512 */
+	sensor->fmt.code = sensor->current_format->code;
+	sensor->fmt.width = sensor->current_framesize->width;
+	sensor->fmt.height = sensor->current_framesize->height;
+	sensor->fmt.field = V4L2_FIELD_NONE;
+	sensor->fmt.colorspace = V4L2_COLORSPACE_RAW;
+
+	/* Initialize V4L2 subdev */
+	v4l2_subdev_init(&sensor->sd, &flir_boson_subdev_ops);
+	sensor->sd.flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
+	sensor->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
+	sensor->sd.entity.ops = &flir_boson_media_ops;
+	sensor->sd.dev = dev;
+	strscpy(sensor->sd.name, FLIR_BOSON_NAME "-sim", sizeof(sensor->sd.name));
+
+	/* Initialize media pad */
+	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
+	ret = media_entity_pads_init(&sensor->sd.entity, 1, &sensor->pad);
+	if (ret) {
+		dev_err(dev, "Could not init media entity\n");
+		goto cleanup_mutex;
+	}
+
+	/* Set platform device data */
+	platform_set_drvdata(pdev, &sensor->sd);
+
+	/* Register V4L2 subdev */
+	ret = v4l2_async_register_subdev(&sensor->sd);
+	if (ret) {
+		dev_err(dev, "Could not register v4l2 device: %d\n", ret);
+		goto cleanup_entity;
+	}
+
+	dev_info(dev, "FLIR Boson+ Simulation Mode loaded successfully");
+	dev_info(dev, "Use: echo 1 > /sys/kernel/debug/flir_test to run protocol tests");
+
+	return 0;
+
+cleanup_entity:
+	media_entity_cleanup(&sensor->sd.entity);
+cleanup_mutex:
+	mutex_destroy(&sensor->lock);
+	return ret;
+}
+
+static void flir_boson_sim_remove(struct platform_device *pdev)
+{
+	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
+	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
+
+	v4l2_async_unregister_subdev(&sensor->sd);
+	media_entity_cleanup(&sensor->sd.entity);
+	mutex_destroy(&sensor->lock);
+	sim_sensor = NULL;
+
+	dev_info(&pdev->dev, "FLIR Boson+ Simulation Mode removed");
+}
+
+static struct platform_driver flir_boson_sim_driver = {
+	.driver = {
+		.name = FLIR_BOSON_NAME "-sim",
+	},
+	.probe = flir_boson_sim_probe,
+	.remove = flir_boson_sim_remove,
+};
+
+/* Simulation platform device */
+static struct platform_device *flir_sim_pdev;
+
+#else
+
+/* Hardware Mode: I2C Driver */
 static struct i2c_driver flir_boson_i2c_driver = {
 	.driver = {
 		.name = FLIR_BOSON_NAME,
@@ -505,9 +614,61 @@ static struct i2c_driver flir_boson_i2c_driver = {
 	.remove = flir_boson_remove,
 };
 
-module_i2c_driver(flir_boson_i2c_driver);
+#endif /* FLIR_SIMULATION_MODE */
 
+static int __init flir_boson_driver_init(void)
+{
+#ifdef FLIR_SIMULATION_MODE
+	int ret;
+
+	pr_info("FLIR Boson+ Driver: Starting in SIMULATION MODE\n");
+
+	/* Register platform driver for simulation */
+	ret = platform_driver_register(&flir_boson_sim_driver);
+	if (ret) {
+		pr_err("Failed to register simulation platform driver: %d\n", ret);
+		return ret;
+	}
+
+	/* Create simulation platform device */
+	flir_sim_pdev = platform_device_register_simple(FLIR_BOSON_NAME "-sim", -1, NULL, 0);
+	if (IS_ERR(flir_sim_pdev)) {
+		pr_err("Failed to register simulation platform device\n");
+		platform_driver_unregister(&flir_boson_sim_driver);
+		return PTR_ERR(flir_sim_pdev);
+	}
+
+	pr_info("FLIR Boson+ Simulation Mode ready\n");
+	pr_info("Use 'dmesg | grep FSLP_SIM' to view protocol traces\n");
+
+	return 0;
+#else
+	pr_info("FLIR Boson+ Driver: Starting in HARDWARE MODE\n");
+	return i2c_add_driver(&flir_boson_i2c_driver);
+#endif
+}
+module_init(flir_boson_driver_init);
+
+static void __exit flir_boson_driver_exit(void)
+{
+#ifdef FLIR_SIMULATION_MODE
+	pr_info("FLIR Boson+ Driver: Simulation mode cleanup\n");
+	if (flir_sim_pdev) {
+		platform_device_unregister(flir_sim_pdev);
+		flir_sim_pdev = NULL;
+	}
+	platform_driver_unregister(&flir_boson_sim_driver);
+#else
+	i2c_del_driver(&flir_boson_i2c_driver);
+#endif
+}
+module_exit(flir_boson_driver_exit);
+
+#ifdef FLIR_SIMULATION_MODE
+MODULE_DESCRIPTION("FLIR Boson+ MIPI Camera V4L2 Driver (Simulation Mode)");
+#else
 MODULE_DESCRIPTION("FLIR Boson+ MIPI Camera V4L2 Driver");
+#endif
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("FLIR Driver Development");
 MODULE_VERSION("1.0");

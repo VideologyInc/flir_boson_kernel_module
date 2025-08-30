@@ -1,0 +1,19 @@
+# SPDX-License-Identifier: GPL-2.0-only
+
+config VIDEO_FLIR_BOSON
+	tristate "FLIR Boson+ MIPI Camera support"
+	depends on VIDEO_DEV && I2C
+	depends on MEDIA_CAMERA_SUPPORT
+	select MEDIA_CONTROLLER
+	select VIDEO_V4L2_SUBDEV_API
+	select V4L2_FWNODE
+	help
+	  This is a V4L2 sensor driver for FLIR Boson and Boson+
+	  thermal imaging cameras with MIPI CSI-2 interface.
+
+	  The driver supports basic video streaming operations while
+	  preserving full SDK access via IOCTL for advanced thermal
+	  imaging features.
+
+	  To compile this driver as a module, choose M here: the
+	  module will be called flir-boson.

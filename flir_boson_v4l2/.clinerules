@@ -113,7 +113,6 @@ static void UINT32_ToBytes(u32 inVal, u8 *outBuff)
 flir_boson_set_output_interface(sensor, FLR_DVO_MIPI);
 flir_boson_set_dvo_type(sensor, FLR_DVO_TYPE_MONO8/MONO14/COLOR);
 flir_boson_set_mipi_state(sensor, FLIR_MIPI_STATE_ACTIVE);
-flir_boson_apply_settings(sensor);
 ```
 
 ### Device Tree Integration

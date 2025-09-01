@@ -4,6 +4,8 @@
 flir-boson-objs := flir-boson-core.o flir-boson-fslp.o
 obj-m += flir-boson.o
 
+EXTRA_CFLAGS += -DDEBUG
+
 # In-tree kernel build support
 obj-$(CONFIG_VIDEO_FLIR_BOSON) += flir-boson.o
 flir-boson-y := flir-boson-core.o flir-boson-fslp.o

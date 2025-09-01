@@ -24,7 +24,7 @@ try:
     READ = 1
     WRITE = 0
     # `pip install i2cdriver` for unmodified code
-    # will need to remove/modify __del__ and close() apis 
+    # will need to remove/modify __del__ and close() apis
     # requires "import serial" to work (pip install pyserial?)
     I2CDRIVER_AVAILABLE = True
 except ImportError:
@@ -44,7 +44,7 @@ class I2CSMBusPort(PortBase):
         '''
         portID = i2c bus number (e.g. 0 or 1) or an absolute file path (e.g. `/dev/i2c-42`).
         '''
-        #SMBus port 2 for Tx2 adapter. 
+        #SMBus port 2 for Tx2 adapter.
         if portID is None:
             portID = 2
         if baudrate is None:
@@ -77,6 +77,7 @@ class I2CSMBusPort(PortBase):
 
     def write(self, data):
         msg = self.i2c_msg.write(self.peripheralAddress, data)
+        print("i2cwrite: ", ":".join("{:02x}".format(c) for c in data))
         self.port.i2c_rdwr(msg)
 
     def read(self, numberOfBytes):
@@ -84,6 +85,7 @@ class I2CSMBusPort(PortBase):
         self.port.i2c_rdwr(msg)
         if msg.len != numberOfBytes:
             raise IOError(f"Read incorrect number of bytes. Got {msg.len} instead of {numberOfBytes}")
+        print("i2cread: ", ":".join("{:02x}".format(c) for c in msg.buf[0:msg.len]))
         return bytearray(msg.buf[0:msg.len])
 
     def __del__(self):
@@ -99,7 +101,7 @@ class I2CDriverPort(PortBase):
         '''
         if not I2CDRIVER_AVAILABLE:
             raise ImportError(I2CDRIVER_ERROR_STRING)
-        
+
         if baudrate is None:
             baudrate = 400000
         super().__init__(portID, int(baudrate))
@@ -120,7 +122,7 @@ class I2CDriverPort(PortBase):
         except Exception: # actually a SerialException
             self.close()
             raise IOError("I2C Address scan failed. Check bus connections and retry")
-        
+
         if self.peripheralAddress not in connected_peripherals:
             connected_peripherals = " ".join([f"0x{by:02X}" for by in connected_peripherals])
             raise IOError(f"Selected peripheral address 0x{self.peripheralAddress:02X} not present!\n\tOptions:{connected_peripherals}")

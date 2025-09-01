@@ -29,33 +29,61 @@
 #define FLIR_FSLP_MAX_DATA    256
 
 /* FLIR SDK Command Codes */
-#define DVO_SET_OUTPUT_INTERFACE   0x00060007
+
+/* Boson Module Commands */
+#define BOSON_GETCAMERASN          0x00050002
+
+/* DVO Module Commands */
+#define DVO_SET_OUTPUT_FORMAT      0x00060006
+#define DVO_GET_OUTPUT_FORMAT      0x00060007
+#define DVO_SET_DISPLAY_MODE       0x0006000D
+#define DVO_GET_DISPLAY_MODE       0x0006000E
 #define DVO_SET_TYPE               0x0006000F
+#define DVO_GET_TYPE               0x00060010
+
+#define DVO_SET_MIPI_STARTSTATE    0x00060022
+#define DVO_GET_MIPI_STARTSTATE    0x00060023
 #define DVO_SET_MIPI_STATE         0x00060024
-#define DVO_APPLY_CUSTOM_SETTINGS  0x00060025
-#define DVO_GET_MIPI_STATE         0x00060026
+#define DVO_GET_MIPI_STATE         0x00060025
+#define DVO_SET_MIPI_CLOCKLANEMODE 0x00060026
+#define DVO_GET_MIPI_CLOCKLANEMODE 0x00060027
+#define DVO_SET_OUTPUT_INTERFACE   0x00060028
+#define DVO_GET_OUTPUT_INTERFACE   0x00060029
+
 
 /* FLIR DVO Output Interface Types */
 enum flir_dvo_output_interface {
-	FLR_DVO_CMOS = 0,
-	FLR_DVO_MIPI = 1,
+    FLR_DVO_CMOS = 0,
+    FLR_DVO_MIPI = 1,
+    FLR_DVO_OUTPUT_INTERFACE_END = 2,
 };
 
 /* FLIR DVO Types */
 enum flir_dvo_type {
-	FLR_DVO_TYPE_MONO8 = 0,
-	FLR_DVO_TYPE_MONO14 = 1,
-	FLR_DVO_TYPE_COLOR = 2,
-	FLR_DVO_TYPE_MONO8MONO14 = 3,
-	FLR_DVO_TYPE_COLORMONO14 = 4,
-	FLR_DVO_TYPE_COLORMONO8 = 5,
+    FLR_DVO_TYPE_MONO16 = 0,
+    FLR_DVO_TYPE_MONO8 = 1,
+    FLR_DVO_TYPE_COLOR = 2,
+    FLR_DVO_TYPE_ANALOG = 3,
+    FLR_DVO_TYPE_RAW = 4,
+    FLR_DVO_TYPE_MONO14 = 5,
+    FLR_DVO_TYPE_TLINEAR = 6,
+    FLR_DVO_TYPE_MONO12 = 7,
+    FLR_DVO_TYPE_MONO8MONO14 = 8,
+    FLR_DVO_TYPE_MONO8MONO12 = 9,
+    FLR_DVO_TYPE_COLORMONO14 = 10,
+    FLR_DVO_TYPE_COLORMONO12 = 11,
+    FLR_DVO_TYPE_COLORMONO8 = 12,
+    FLR_DVO_TYPE_COLORTLINEAR = 13,
+    FLR_DVO_TYPE_MONO8TLINEAR = 14,
+    FLR_DVO_TYPE_END = 15,
 };
 
 /* MIPI State Machine */
 enum flir_mipi_state {
-	FLIR_MIPI_STATE_OFF = 0,
-	FLIR_MIPI_STATE_PAUSED = 1,
-	FLIR_MIPI_STATE_ACTIVE = 2,
+    FLR_DVO_MIPI_STATE_OFF = (int32_t) 0,
+    FLR_DVO_MIPI_STATE_PAUSED = (int32_t) 1,
+    FLR_DVO_MIPI_STATE_ACTIVE = (int32_t) 2,
+    FLR_DVO_MIPI_STATE_END = (int32_t) 3,
 };
 
 /* Supported Formats */
@@ -99,6 +127,9 @@ struct flir_boson_dev {
 	int mipi_state;
 	bool streaming;
 	bool powered;
+
+	/* Camera information */
+	u32 camera_sn;
 /* FSLP communication */
 u8 fslp_tx_buf[FLIR_FSLP_MAX_DATA];
 u8 fslp_rx_buf[FLIR_FSLP_MAX_DATA];
@@ -132,8 +163,8 @@ int flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u32 fn_i
 int flir_boson_set_mipi_state(struct flir_boson_dev *sensor, int state);
 int flir_boson_set_output_interface(struct flir_boson_dev *sensor, int interface);
 int flir_boson_set_dvo_type(struct flir_boson_dev *sensor, u32 type);
-int flir_boson_apply_settings(struct flir_boson_dev *sensor);
 int flir_boson_get_mipi_state(struct flir_boson_dev *sensor, int *state);
+int flir_boson_get_camera_sn(struct flir_boson_dev *sensor, u32 *camera_sn);
 
 /* Legacy compatibility */
 int flir_boson_fslp_send_frame(struct flir_boson_dev *sensor,

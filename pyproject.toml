@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "flir-boson-sdk"
+description = "FLIR Boson Camera Software Development Kit for Command and Control operations"
+dynamic = ["version"]
+readme = "BosonSDK/SDK_README.txt"
+requires-python = ">=3.7"
+dependencies = [
+    "pyserial", "smbus2"
+]
+authors = [
+    {name = "FLIR Systems"}
+]
+license = {file = "BosonSDK/License.txt"}
+keywords = ["flir", "boson", "thermal", "camera", "sdk"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Image Processing",
+    "Programming Language :: Python :: 3",
+]
+
+[project.urls]
+Homepage = "https://oem.flir.com/support/support-center/software/"
+
+[tool.setuptools]
+packages = ["BosonSDK", "BosonSDK.ClientFiles_Python", "BosonSDK.CommunicationFiles", "BosonSDK.FSLP_Files"]
+include-package-data = true
+
+[tool.setuptools_scm]
+write_to = "BosonSDK/_version.py"

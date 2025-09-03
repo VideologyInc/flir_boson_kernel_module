@@ -10,85 +10,16 @@
  */
 
 #include <linux/i2c.h>
-#include <linux/delay.h>
+#include <linux/types.h>
 #include <linux/byteorder/generic.h>
 #include "flir-boson.h"
+#include "ReturnCodes.h"
 
 /* ========================================================================
- * Layer 0: Raw I2C Transport (with Simulation Mode Support)
+ * Layer 0: Raw I2C Transport
  * ======================================================================== */
 
-#ifdef FLIR_SIMULATION_MODE
-
-/* Simulation Mode: Mock I2C with printk logging */
-static int flir_simulate_i2c_write(struct flir_boson_dev *sensor,
-				   const u8 *data, size_t len)
-{
-	int i;
-
-	dev_info(sensor->dev, "FSLP_SIM_TX: %zu bytes:", len);
-
-	/* Log frame in hex format for validation */
-	for (i = 0; i < len; i++) {
-		if (i % 16 == 0)
-			printk(KERN_CONT "\nFSLP_SIM_TX: %04X: ", i);
-		printk(KERN_CONT "%02X ", data[i]);
-	}
-	printk(KERN_CONT "\n");
-
-	/* Validate FSLP frame structure */
-	if (len >= 4 && data[0] == FLIR_MAGIC_TOKEN_0 && data[1] == FLIR_MAGIC_TOKEN_1) {
-		u16 payload_len = (data[2] << 8) | data[3];
-		dev_info(sensor->dev, "FSLP_SIM: Valid frame, payload_len=%u", payload_len);
-
-		if (len == 4 + payload_len) {
-			dev_info(sensor->dev, "FSLP_SIM: Frame length correct");
-		} else {
-			dev_warn(sensor->dev, "FSLP_SIM: Frame length mismatch: got %zu, expected %u",
-				 len, 4 + payload_len);
-		}
-	} else {
-		dev_warn(sensor->dev, "FSLP_SIM: Invalid FSLP frame");
-	}
-
-	return 0; /* Always succeed in simulation */
-}
-
-static int flir_simulate_i2c_read(struct flir_boson_dev *sensor,
-				  u8 *data, size_t len)
-{
-	/* Generate mock camera response */
-	if (len >= 16) {
-		/* Simulate realistic camera response */
-		u8 *ptr = data;
-
-		/* I2C FSLP header */
-		*ptr++ = FLIR_MAGIC_TOKEN_0;  /* 0x8E */
-		*ptr++ = FLIR_MAGIC_TOKEN_1;  /* 0xA1 */
-		*ptr++ = 0x00;                /* Length high byte */
-		*ptr++ = len - 4;             /* Length low byte */
-
-		/* Response payload header (echo sequence + command, success status) */
-		*ptr++ = 0x00; *ptr++ = 0x00; *ptr++ = 0x00; *ptr++ = 0x01; /* Sequence = 1 */
-		*ptr++ = 0x00; *ptr++ = 0x06; *ptr++ = 0x00; *ptr++ = 0x24; /* DVO_SET_MIPI_STATE */
-		*ptr++ = 0x00; *ptr++ = 0x00; *ptr++ = 0x00; *ptr++ = 0x00; /* Status = success */
-
-		/* Response data (for GET commands) */
-		if (len > 16) {
-			*ptr++ = 0x00; *ptr++ = 0x00; *ptr++ = 0x00; *ptr++ = 0x02; /* MIPI_STATE_ACTIVE */
-		}
-	}
-
-	dev_info(sensor->dev, "FSLP_SIM_RX: Generated %zu bytes response", len);
-	return 0;
-}
-
-#define flir_boson_i2c_write(sensor, data, len) flir_simulate_i2c_write(sensor, data, len)
-#define flir_boson_i2c_read(sensor, data, len) flir_simulate_i2c_read(sensor, data, len)
-
-#else
-
-/* Real Hardware Mode: Actual I2C Communication */
+/* Hardware Mode: Real I2C Communication */
 static int flir_boson_i2c_write(struct flir_boson_dev *sensor,
 				const u8 *data, size_t len)
 {
@@ -98,15 +29,15 @@ static int flir_boson_i2c_write(struct flir_boson_dev *sensor,
 		.len = len,
 		.buf = (u8 *)data,
 	};
-	int ret;
+	int ret = 0;
 
-	dev_dbg(sensor->dev, "I2C_WRITE: addr=0x%02x, len=%zu",
-		sensor->i2c_client->addr, len);
+	// dev_dbg(sensor->dev, "I2C_WRITE: addr=0x%02x, len=%zu",
+		// sensor->i2c_client->addr, len);
 	// print_hex_dump_debug("I2C_WRITE_DATA: ", DUMP_PREFIX_OFFSET, 16, 1, data, len, true);
 
 	ret = i2c_transfer(sensor->i2c_client->adapter, &msg, 1);
 
-	dev_dbg(sensor->dev, "I2C_WRITE: result=%d (expected=1)", ret);
+	// dev_dbg(sensor->dev, "I2C_WRITE: result=%d (expected=1)", ret);
 
 	return ret == 1 ? 0 : -EIO;
 }
@@ -120,22 +51,19 @@ static int flir_boson_i2c_read(struct flir_boson_dev *sensor,
 		.len = len,
 		.buf = data,
 	};
-	int ret;
+	int ret = 0;
 
-	dev_dbg(sensor->dev, "I2C_READ: addr=0x%02x, len=%zu",
-		sensor->i2c_client->addr, len);
+	// dev_dbg(sensor->dev, "I2C_READ: addr=0x%02x, len=%zu", sensor->i2c_client->addr, len);
 
 	ret = i2c_transfer(sensor->i2c_client->adapter, &msg, 1);
 
-	dev_dbg(sensor->dev, "I2C_READ: result=%d (expected=1)", ret);
+	// dev_dbg(sensor->dev, "I2C_READ: result=%d (expected=1)", ret);
 	if (ret == 1) {
 		// print_hex_dump_debug("I2C_READ_DATA: ", DUMP_PREFIX_OFFSET, 16, 1, data, len, true);
 	}
 
 	return ret == 1 ? 0 : -EIO;
 }
-
-#endif /* FLIR_SIMULATION_MODE */
 
 /* UINT32_ToBytes - copied from SDK/ClientFiles_MSVC/Serializer_BuiltIn.c */
 static void UINT32_ToBytes(u32 inVal, u8 *outBuff)
@@ -222,7 +150,7 @@ int flir_fslp_read_frame(struct flir_boson_dev *sensor, u8 channel_id,
 		dev_err(sensor->dev, "Failed to read FSLP header: %d\n", ret);
 		return ret;
 	}
-	print_hex_dump_debug("FSLP_HEADER: ", DUMP_PREFIX_OFFSET, 16, 1, header, 4, true);
+	// print_hex_dump_debug("FSLP_HEADER: ", DUMP_PREFIX_OFFSET, 16, 1, header, 4, true);
 
 	/* Validate magic tokens - matches I2CFslp.py:50-51 */
 	if (header[0] != FLIR_MAGIC_TOKEN_0 || header[1] != FLIR_MAGIC_TOKEN_1) {
@@ -272,9 +200,7 @@ int flir_fslp_read_frame(struct flir_boson_dev *sensor, u8 channel_id,
  *
  * Implements exact CLIENT_dispatch() protocol from Client_Dispatcher.py:11-93
  */
-int flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u32 fn_id,
-			    const u8 *send_data, u32 send_bytes,
-			    u8 *receive_data, u32 *receive_bytes)
+FLR_RESULT flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u32 fn_id, const u8 *send_data, u32 send_bytes, u8 *receive_data, u32 *receive_bytes)
 {
 	u8 command_payload[FLIR_FSLP_MAX_DATA];
 	u8 response_payload[FLIR_FSLP_MAX_DATA];
@@ -286,7 +212,7 @@ int flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u32 fn_i
 
 	if (send_bytes > (FLIR_FSLP_MAX_DATA - 12)) {
 		dev_err(sensor->dev, "Command data too large: %u bytes\n", send_bytes);
-		return -EINVAL;
+		return R_SDK_PKG_BUFFER_OVERFLOW;
 	}
 
 	/* Build 12-byte command header - matches Client_Dispatcher.py:16-26 */
@@ -306,11 +232,8 @@ int flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u32 fn_i
 	ret = flir_fslp_send_frame(sensor, 0x00, command_payload, 12 + send_bytes);
 	if (ret) {
 		dev_err(sensor->dev, "Failed to send command 0x%08X: %d\n", fn_id, ret);
-		return ret;
+		return FLR_COMM_ERROR_WRITING_COMM;
 	}
-
-	/* Wait for processing */
-	msleep(10);
 
 	/* Read response if expected - matches Client_Dispatcher.py:40-48 */
 	if (receive_bytes && *receive_bytes > 0) {
@@ -322,7 +245,7 @@ int flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u32 fn_i
 			ret = flir_fslp_read_frame(sensor, 0x00, response_payload, expected_resp_len);
 			if (ret) {
 				dev_err(sensor->dev, "Failed to read response: %d\n", ret);
-				return ret;
+				return FLR_COMM_ERROR_READING_COMM;
 			}
 			// print_hex_dump_debug("RESP_PAYLOAD: ", DUMP_PREFIX_OFFSET, 16, 1, response_payload, expected_resp_len, true);
 
@@ -333,7 +256,7 @@ int flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u32 fn_i
 					continue;
 				}
 				dev_err(sensor->dev, "Response too short: %u bytes\n", expected_resp_len);
-				return -EPROTO;
+				return FLR_COMM_ERROR_READING_COMM;
 			}
 
 			resp_ptr = response_payload;
@@ -348,7 +271,7 @@ int flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u32 fn_i
 					dev_warn(sensor->dev, "Retrying read...\n");
 					continue;
 				}
-				return -EPROTO;
+				return R_SDK_DSPCH_SEQUENCE_MISMATCH;
 			} else {
 				break; /* Sequence OK */
 			}
@@ -361,17 +284,17 @@ int flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u32 fn_i
 		if (cmd_id != fn_id) {
 			dev_err(sensor->dev, "Command ID mismatch: exp 0x%08X, got 0x%08X\n",
 				fn_id, cmd_id);
-			return -EPROTO;
+			return R_SDK_DSPCH_ID_MISMATCH;
 		}
 
 		/* Validate status - matches Client_Dispatcher.py:75-87 */
 		status = byteToUINT32(resp_ptr);
 		resp_ptr += 4;
 
-		if (status != 0) {
-			dev_err(sensor->dev, "Command 0x%08X failed with status 0x%08X\n",
-				fn_id, status);
-			return -EREMOTEIO;
+		if (status != R_SUCCESS) {
+			dev_err(sensor->dev, "Command 0x%08X failed with status 0x%08X (%s)\n",
+				fn_id, status, flr_result_to_string((FLR_RESULT)status));
+			return (FLR_RESULT)status;
 		}
 
 		/* Copy response data - matches Client_Dispatcher.py:90-92 */
@@ -382,107 +305,43 @@ int flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u32 fn_i
 		dev_dbg(sensor->dev, "Command 0x%08X completed successfully\n", fn_id);
 	}
 
-	return 0;
+	return R_SUCCESS;
 }
 
 /* ========================================================================
  * Layer 3: Command Packagers (matches Client_Packager.py/c patterns)
  * ======================================================================== */
 
-int flir_boson_set_output_interface(struct flir_boson_dev *sensor, int interface)
+FLR_RESULT flir_boson_send_int_cmd(struct flir_boson_dev *sensor, u32 cmd, u32 val)
 {
 	u8 send_data[4];
 	u32 seq_num = ++sensor->command_count;
-	int ret;
+	FLR_RESULT ret;
 
-	dev_dbg(sensor->dev, "CMD: flir_boson_set_output_interface(interface=%d)", interface);
-	dev_dbg(sensor->dev, "CMD: seq_num=0x%08X, fn_id=0x%08X", seq_num, DVO_SET_OUTPUT_INTERFACE);
-
-	UINT32_ToBytes(interface, send_data);
+	// dev_dbg(sensor->dev, "CMD: flir_boson_set_output_interface(interface=%d)", interface);
+	// dev_dbg(sensor->dev, "CMD: seq_num=0x%08X, fn_id=0x%08X", seq_num, DVO_SET_OUTPUT_INTERFACE);
+	UINT32_ToBytes(val, send_data);
 	// print_hex_dump_debug("CMD_DATA: ", DUMP_PREFIX_OFFSET, 16, 1, send_data, sizeof(send_data), true);
 
-	ret = flir_command_dispatcher(sensor, seq_num, DVO_SET_OUTPUT_INTERFACE,
-				      send_data, sizeof(send_data), NULL, NULL);
+	ret = flir_command_dispatcher(sensor, seq_num, cmd, send_data, sizeof(send_data), NULL, NULL);
 
 	dev_dbg(sensor->dev, "CMD: flir_boson_set_output_interface result=%d", ret);
 	return ret;
 }
 
-int flir_boson_set_dvo_type(struct flir_boson_dev *sensor, u32 type)
-{
-	u8 send_data[4];
-	u32 seq_num = ++sensor->command_count;
-	int ret;
-
-	dev_dbg(sensor->dev, "CMD: flir_boson_set_dvo_type(type=%u)", type);
-	dev_dbg(sensor->dev, "CMD: seq_num=0x%08X, fn_id=0x%08X", seq_num, DVO_SET_TYPE);
-
-	UINT32_ToBytes(type, send_data);
-	// print_hex_dump_debug("CMD_DATA: ", DUMP_PREFIX_OFFSET, 16, 1, send_data, sizeof(send_data), true);
-
-	ret = flir_command_dispatcher(sensor, seq_num, DVO_SET_TYPE,
-				      send_data, sizeof(send_data), NULL, NULL);
-
-	dev_dbg(sensor->dev, "CMD: flir_boson_set_dvo_type result=%d", ret);
-	return ret;
-}
-
-int flir_boson_set_mipi_state(struct flir_boson_dev *sensor, int state)
-{
-	u8 send_data[4];
-	u32 seq_num = ++sensor->command_count;
-	int ret;
-
-	dev_dbg(sensor->dev, "CMD: flir_boson_set_mipi_state(state=%d)", state);
-	dev_dbg(sensor->dev, "CMD: seq_num=0x%08X, fn_id=0x%08X", seq_num, DVO_SET_MIPI_STATE);
-
-	UINT32_ToBytes(state, send_data);
-	// print_hex_dump_debug("CMD_DATA: ", DUMP_PREFIX_OFFSET, 16, 1, send_data, sizeof(send_data), true);
-
-	ret = flir_command_dispatcher(sensor, seq_num, DVO_SET_MIPI_STATE,
-				      send_data, sizeof(send_data), NULL, NULL);
-	if (!ret) {
-		sensor->mipi_state = state;
-		dev_dbg(sensor->dev, "CMD: MIPI state updated to %d", state);
-	}
-
-	dev_dbg(sensor->dev, "CMD: flir_boson_set_mipi_state result=%d", ret);
-	return ret;
-}
-
-int flir_boson_get_mipi_state(struct flir_boson_dev *sensor, int *state)
+FLR_RESULT flir_boson_get_int_val(struct flir_boson_dev *sensor, u32 cmd, u32 *val)
 {
 	u8 receive_data[4];
 	u32 receive_bytes = sizeof(receive_data);
 	u32 seq_num = ++sensor->command_count;
-	int ret;
+	FLR_RESULT ret;
 
-	dev_dbg(sensor->dev, "CMD: flir_boson_get_mipi_state()");
-	dev_dbg(sensor->dev, "CMD: seq_num=0x%08X, fn_id=0x%08X", seq_num, DVO_GET_MIPI_STATE);
-
-	ret = flir_command_dispatcher(sensor, seq_num, DVO_GET_MIPI_STATE,
-				      NULL, 0, receive_data, &receive_bytes);
-	if (!ret && receive_bytes >= 4) {
-		*state = byteToUINT32(receive_data);
-		dev_dbg(sensor->dev, "CMD: Got MIPI state: %d", *state);
+	ret = flir_command_dispatcher(sensor, seq_num, cmd, NULL, 0, receive_data, &receive_bytes);
+	if (ret == R_SUCCESS && receive_bytes >= 4) {
+		*val = byteToUINT32(receive_data);
+		// dev_dbg(sensor->dev, "CMD: Got MIPI state: %d", *state);
 		// print_hex_dump_debug("CMD_RESP: ", DUMP_PREFIX_OFFSET, 16, 1, receive_data, receive_bytes, true);
 	}
-
-	dev_dbg(sensor->dev, "CMD: flir_boson_get_mipi_state result=%d", ret);
-	return ret;
-}
-
-int flir_boson_get_camera_sn(struct flir_boson_dev *sensor, u32 *camera_sn)
-{
-	u8 receive_data[4];
-	u32 receive_bytes = sizeof(receive_data);
-	u32 seq_num = ++sensor->command_count;
-	int ret;
-
-	ret = flir_command_dispatcher(sensor, seq_num, BOSON_GETCAMERASN,
-				      NULL, 0, receive_data, &receive_bytes);
-	if (!ret && receive_bytes >= 4)
-		*camera_sn = byteToUINT32(receive_data);
 
 	return ret;
 }
@@ -491,45 +350,44 @@ int flir_boson_get_camera_sn(struct flir_boson_dev *sensor, u32 *camera_sn)
  * Legacy compatibility function (for existing IOCTL interface)
  * ======================================================================== */
 
-int flir_boson_fslp_send_frame(struct flir_boson_dev *sensor,
-			       const u8 *tx_data, u32 tx_len,
-			       u8 *rx_data, u32 rx_len)
-{
-	int ret;
+// int flir_boson_fslp_send_frame(struct flir_boson_dev *sensor,
+// 			       const u8 *tx_data, u32 tx_len,
+// 			       u8 *rx_data, u32 rx_len)
+// {
+// 	int ret;
 
-	dev_dbg(sensor->dev, "LEGACY: flir_boson_fslp_send_frame(tx_len=%u, rx_len=%u)",
-		tx_len, rx_len);
+// 	dev_dbg(sensor->dev, "LEGACY: flir_boson_fslp_send_frame(tx_len=%u, rx_len=%u)", tx_len, rx_len);
 
-	/* Send frame directly via I2C (legacy mode) */
-	if (tx_len > 0) {
-		// print_hex_dump_debug("LEGACY_TX: ", DUMP_PREFIX_OFFSET, 16, 1, tx_data, tx_len, true);
-		ret = flir_boson_i2c_write(sensor, tx_data, tx_len);
-		if (ret) {
-			dev_err(sensor->dev, "Failed to send legacy FSLP frame: %d\n", ret);
-			return ret;
-		}
-	}
+// 	/* Send frame directly via I2C (legacy mode) */
+// 	if (tx_len > 0) {
+// 		// print_hex_dump_debug("LEGACY_TX: ", DUMP_PREFIX_OFFSET, 16, 1, tx_data, tx_len, true);
+// 		ret = flir_boson_i2c_write(sensor, tx_data, tx_len);
+// 		if (ret) {
+// 			dev_err(sensor->dev, "Failed to send legacy FSLP frame: %d\n", ret);
+// 			return ret;
+// 		}
+// 	}
 
-	/* Wait for processing */
-	msleep(10);
+// 	/* Wait for processing */
+// 	msleep(10);
 
-	/* Read response if expected */
-	if (rx_len > 0) {
-		ret = flir_boson_i2c_read(sensor, rx_data, rx_len);
-		if (ret) {
-			dev_err(sensor->dev, "Failed to read legacy FSLP response: %d\n", ret);
-			return ret;
-		}
+// 	/* Read response if expected */
+// 	if (rx_len > 0) {
+// 		ret = flir_boson_i2c_read(sensor, rx_data, rx_len);
+// 		if (ret) {
+// 			dev_err(sensor->dev, "Failed to read legacy FSLP response: %d\n", ret);
+// 			return ret;
+// 		}
 
-		// print_hex_dump_debug("LEGACY_RX: ", DUMP_PREFIX_OFFSET, 16, 1, rx_data, rx_len, true);
+// 		// print_hex_dump_debug("LEGACY_RX: ", DUMP_PREFIX_OFFSET, 16, 1, rx_data, rx_len, true);
 
-		/* Basic validation */
-		if (rx_len >= 4 &&
-		    (rx_data[0] != FLIR_MAGIC_TOKEN_0 || rx_data[1] != FLIR_MAGIC_TOKEN_1)) {
-			dev_warn(sensor->dev, "Invalid legacy FSLP response magic\n");
-		}
-	}
+// 		/* Basic validation */
+// 		if (rx_len >= 4 &&
+// 		    (rx_data[0] != FLIR_MAGIC_TOKEN_0 || rx_data[1] != FLIR_MAGIC_TOKEN_1)) {
+// 			dev_warn(sensor->dev, "Invalid legacy FSLP response magic\n");
+// 		}
+// 	}
 
-	dev_dbg(sensor->dev, "LEGACY: flir_boson_fslp_send_frame completed successfully");
-	return 0;
-}
+// 	dev_dbg(sensor->dev, "LEGACY: flir_boson_fslp_send_frame completed successfully");
+// 	return 0;
+// }

@@ -4,7 +4,7 @@
  * Copyright (C) 2024
  */
 
-#include <linux/clk.h>
+
 #include <linux/delay.h>
 #include <linux/device.h>
 #include <linux/i2c.h>
@@ -15,7 +15,8 @@
 #include <linux/pm_runtime.h>
 #include <linux/slab.h>
 #include <linux/types.h>
-#include <linux/uaccess.h>
+#include <linux/random.h>
+
 #include <linux/version.h>
 #include <media/v4l2-async.h>
 #include <media/v4l2-ctrls.h>
@@ -24,7 +25,45 @@
 #include <media/v4l2-fwnode.h>
 #include <media/v4l2-subdev.h>
 
+#include "EnumTypes.h"
+#include "FunctionCodes.h"
 #include "flir-boson.h"
+
+/**
+ * flr_result_to_errno - Convert FLR_RESULT to Linux error code
+ * @result: FLR_RESULT code from SDK
+ * @return: Corresponding Linux error code
+ */
+static int flr_result_to_errno(FLR_RESULT result)
+{
+	switch (result) {
+	case R_SUCCESS: /* FLR_OK and FLR_COMM_OK have same value */
+		return 0;
+	case FLR_BAD_ARG_POINTER_ERROR:
+	case R_CAM_API_INVALID_INPUT:
+		return -EINVAL;
+	case FLR_COMM_TIMEOUT_ERROR: /* FLR_COMM_ERROR_WRITING_COMM has same value */
+	case FLR_COMM_ERROR_READING_COMM:
+		return -EIO;
+	case FLR_NOT_READY:
+	case FLR_CAM_BUSY:
+		return -EBUSY;
+	case FLR_RANGE_ERROR:
+	case FLR_DATA_SIZE_ERROR:
+		return -ERANGE;
+	case R_SDK_PKG_BUFFER_OVERFLOW:
+	case R_CAM_PKG_BUFFER_OVERFLOW:
+		return -ENOSPC;
+	case FLR_COMM_PORT_NOT_OPEN:
+	case FLR_COMM_NO_DEV:
+		return -ENODEV;
+	case R_SDK_DSPCH_SEQUENCE_MISMATCH:
+	case R_SDK_DSPCH_ID_MISMATCH:
+		return -EPROTO;
+	default:
+		return -EREMOTEIO;
+	}
+}
 
 /* Supported formats */
 static const struct flir_boson_format flir_boson_formats[] = {
@@ -88,7 +127,7 @@ flir_boson_find_framesize(u32 width, u32 height)
 static int flir_boson_s_power(struct v4l2_subdev *sd, int on)
 {
 	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
-	int ret = 0;
+	FLR_RESULT ret = R_SUCCESS;
 
 	dev_dbg(sensor->dev, "%s: power %s\n", __func__, on ? "on" : "off");
 
@@ -107,23 +146,34 @@ static int flir_boson_s_power(struct v4l2_subdev *sd, int on)
 
 		/* Initialize MIPI interface */
 		dev_dbg(sensor->dev, "POWER: Setting output interface to MIPI");
-		ret =  flir_boson_set_output_interface(sensor, FLR_DVO_MIPI);
-		ret |= flir_boson_set_mipi_state(sensor, FLR_DVO_MIPI_STATE_OFF);
-		if (ret) {
-			dev_err(sensor->dev, "Failed to set MIPI interface: %d\n", ret);
+		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF);
+		if (ret == R_SUCCESS)
+			ret = flir_boson_send_int_cmd(sensor, DVO_SETTYPE, sensor->current_format->flir_type);
+		if (ret == R_SUCCESS)
+			ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPICLOCKLANEMODE, FLR_DVO_MIPI_CLOCK_LANE_MODE_CONTINUOUS);
+		if (ret == R_SUCCESS)
+			ret = flir_boson_send_int_cmd(sensor, DVO_SETOUTPUTINTERFACE, FLR_DVO_MIPI);
+
+		if (ret != R_SUCCESS) {
+			dev_err(sensor->dev, "Failed to set MIPI interface: %s\n", flr_result_to_string(ret));
+			ret = flr_result_to_errno(ret);
 			goto unlock;
 		}
 		dev_dbg(sensor->dev, "POWER: Output interface set to MIPI successfully");
 
-		sensor->powered = true;
-		sensor->mipi_state = FLR_DVO_MIPI_STATE_OFF;
+		sensor->powered = 1;
+		ret = flir_boson_get_int_val(sensor, DVO_GETMIPISTATE, &sensor->mipi_state);
+		if (ret != R_SUCCESS)
+			dev_warn(sensor->dev, "Failed to get MIPI state: %s", flr_result_to_string(ret));
 		sensor->command_count = 0; /* Initialize sequence counter for SDK commands */
 	} else if (!on && sensor->powered) {
 		/* Stop streaming if active */
 		if (sensor->streaming) {
 			dev_dbg(sensor->dev, "POWER: Stopping streaming during power down");
-			flir_boson_set_mipi_state(sensor, FLR_DVO_MIPI_STATE_OFF);
-			sensor->streaming = false;
+			ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF);
+			if (ret != R_SUCCESS)
+				dev_warn(sensor->dev, "Failed to stop MIPI during power down: %s", flr_result_to_string(ret));
+			sensor->streaming = 0;
 			dev_dbg(sensor->dev, "POWER: Streaming stopped");
 		}
 
@@ -135,51 +185,50 @@ static int flir_boson_s_power(struct v4l2_subdev *sd, int on)
 
 unlock:
 	mutex_unlock(&sensor->lock);
-	return ret;
+	return ret == R_SUCCESS ? 0 : flr_result_to_errno(ret);
 }
 
-static long flir_boson_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
-{
-	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
-	struct flir_boson_ioctl_fslp *fslp_cmd;
-	int ret = 0;
+// static long flir_boson_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+// {
+// 	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
+// 	struct flir_boson_ioctl_fslp *fslp_cmd;
+// 	int ret = 0;
 
-	dev_dbg(sensor->dev, "IOCTL: cmd=0x%08X, powered=%d", cmd, sensor->powered);
+// 	dev_dbg(sensor->dev, "IOCTL: cmd=0x%08X, powered=%d", cmd, sensor->powered);
 
-	// if (!sensor->powered)
-	// 	return -ENODEV;
+// 	// if (!sensor->powered)
+// 	// 	return -ENODEV;
 
-	mutex_lock(&sensor->lock);
+// 	mutex_lock(&sensor->lock);
 
-	switch (cmd) {
-	case FLIR_BOSON_IOCTL_FSLP_FRAME:
-		fslp_cmd = (struct flir_boson_ioctl_fslp *)arg;
-		dev_dbg(sensor->dev, "IOCTL: FSLP_FRAME - tx_len=%u, rx_len=%u",
-			fslp_cmd->tx_len, fslp_cmd->rx_len);
-		ret = flir_boson_fslp_send_frame(sensor,
-						 fslp_cmd->data, fslp_cmd->tx_len,
-						 fslp_cmd->data, fslp_cmd->rx_len);
-		dev_dbg(sensor->dev, "IOCTL: FSLP_FRAME result=%d", ret);
-		break;
+// 	switch (cmd) {
+// 	case FLIR_BOSON_IOCTL_FSLP_FRAME:
+// 		fslp_cmd = (struct flir_boson_ioctl_fslp *)arg;
+// 		dev_dbg(sensor->dev, "IOCTL: FSLP_FRAME - tx_len=%u, rx_len=%u",
+// 			fslp_cmd->tx_len, fslp_cmd->rx_len);
+// 		ret = flir_boson_fslp_send_frame(sensor,
+// 						 fslp_cmd->data, fslp_cmd->tx_len,
+// 						 fslp_cmd->data, fslp_cmd->rx_len);
+// 		dev_dbg(sensor->dev, "IOCTL: FSLP_FRAME result=%d", ret);
+// 		break;
 
-	case FLIR_BOSON_IOCTL_GET_STATUS:
-		*(u32 *)arg = (sensor->powered ? 1 : 0) |
-			      (sensor->streaming ? 2 : 0) |
-			      (sensor->mipi_state << 2);
-		ret = 0;
-		dev_dbg(sensor->dev, "IOCTL: GET_STATUS - status=0x%08X (powered=%d, streaming=%d, mipi_state=%d)", *(u32 *)arg, sensor->powered, sensor->streaming, sensor->mipi_state);
-		break;
+// 	case FLIR_BOSON_IOCTL_GET_STATUS:
+// 		*(u32 *)arg = (sensor->powered ? 1 : 0) |
+// 			      (sensor->streaming ? 2 : 0) |
+// 			      (sensor->mipi_state << 2);
+// 		ret = 0;
+// 		dev_dbg(sensor->dev, "IOCTL: GET_STATUS - status=0x%08X (powered=%d, streaming=%d, mipi_state=%d)", *(u32 *)arg, sensor->powered, sensor->streaming, sensor->mipi_state);
+// 		break;
 
-	default:
-		dev_dbg(sensor->dev, "IOCTL: Unknown command 0x%08X", cmd);
-		ret = -ENOIOCTLCMD;
-		// ret = 0;
-		break;
-	}
+// 	default:
+// 		// dev_dbg(sensor->dev, "IOCTL: Unknown command 0x%08X", cmd);
+// 		ret = -ENOIOCTLCMD;
+// 		break;
+// 	}
 
-	mutex_unlock(&sensor->lock);
-	return ret;
-}
+// 	mutex_unlock(&sensor->lock);
+// 	return ret;
+// }
 
 /* V4L2 Subdev Pad Operations */
 static int flir_boson_enum_mbus_code(struct v4l2_subdev *sd,
@@ -254,7 +303,7 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd,
 	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
 	const struct flir_boson_format *new_format;
 	const struct flir_boson_framesize *new_framesize;
-	int ret = 0;
+	FLR_RESULT ret = R_SUCCESS;
 
 	if (format->pad != 0)
 		return -EINVAL;
@@ -276,26 +325,26 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd,
 		goto unlock;
 	}
 
-	/* Apply format if powered and different from current */
-	if (sensor->powered &&
-	    (new_format != sensor->current_format ||
-	     new_framesize != sensor->current_framesize)) {
+	/* Apply format if necessary and different from current */
+	if (1) { // sensor->powered && (new_format != sensor->current_format || new_framesize != sensor->current_framesize)) {
 
 		dev_dbg(sensor->dev, "FORMAT: Format change required - applying new settings");
 
 		/* Set MIPI state to OFF before changing format */
 		dev_dbg(sensor->dev, "FORMAT: Setting MIPI to OFF before format change");
-		ret = flir_boson_set_mipi_state(sensor, FLR_DVO_MIPI_STATE_OFF);
-		if (ret) {
-			dev_err(sensor->dev, "FORMAT: Failed to set MIPI OFF: %d", ret);
+		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF);
+		if (ret != R_SUCCESS) {
+			dev_err(sensor->dev, "FORMAT: Failed to set MIPI OFF: %s", flr_result_to_string(ret));
+			ret = flr_result_to_errno(ret);
 			goto unlock;
 		}
 
 		/* Set new DVO type */
-		dev_dbg(sensor->dev, "FORMAT: Setting DVO type to %u", new_format->flir_type);
-		ret = flir_boson_set_dvo_type(sensor, new_format->flir_type);
-		if (ret) {
-			dev_err(sensor->dev, "FORMAT: Failed to set DVO type: %d", ret);
+		dev_dbg(sensor->dev, "FORMAT: Setting DVO type to mipi");
+		ret = flir_boson_send_int_cmd(sensor, DVO_SETTYPE, new_format->flir_type);
+		if (ret != R_SUCCESS) {
+			dev_err(sensor->dev, "FORMAT: Failed to set DVO type: %s", flr_result_to_string(ret));
+			ret = flr_result_to_errno(ret);
 			goto unlock;
 		}
 
@@ -317,14 +366,14 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd,
 
 unlock:
 	mutex_unlock(&sensor->lock);
-	return ret;
+	return ret == R_SUCCESS ? 0 : (ret > 0 ? ret : flr_result_to_errno(ret));
 }
 
 /* V4L2 Subdev Video Operations */
 static int flir_boson_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
-	int ret = 0, state=0;
+	FLR_RESULT ret = R_SUCCESS;
 
 	dev_dbg(sensor->dev, "%s: stream %s\n", __func__, enable ? "on" : "off");
 	dev_dbg(sensor->dev, "STREAM: Current state - powered=%d, streaming=%d, mipi_state=%d",
@@ -335,9 +384,10 @@ static int flir_boson_s_stream(struct v4l2_subdev *sd, int enable)
 	if (enable && !sensor->streaming) {
 		/* Start streaming */
 		dev_dbg(sensor->dev, "STREAM: Starting streaming - setting MIPI to ACTIVE");
-		ret = flir_boson_set_mipi_state(sensor, FLR_DVO_MIPI_STATE_ACTIVE);
-		if (ret) {
-			dev_err(sensor->dev, "Failed to start MIPI: %d\n", ret);
+		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_ACTIVE);
+		if (ret != R_SUCCESS) {
+			dev_err(sensor->dev, "Failed to start MIPI: %s\n", flr_result_to_string(ret));
+			ret = flr_result_to_errno(ret);
 			goto unlock;
 		}
 		sensor->streaming = true;
@@ -347,9 +397,10 @@ static int flir_boson_s_stream(struct v4l2_subdev *sd, int enable)
 	} else if (!enable && sensor->streaming) {
 		/* Stop streaming */
 		dev_dbg(sensor->dev, "STREAM: Stopping streaming - setting MIPI to OFF");
-		ret = flir_boson_set_mipi_state(sensor, FLR_DVO_MIPI_STATE_OFF);
-		if (ret) {
-			dev_err(sensor->dev, "Failed to stop MIPI: %d\n", ret);
+		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF);
+		if (ret != R_SUCCESS) {
+			dev_err(sensor->dev, "Failed to stop MIPI: %s\n", flr_result_to_string(ret));
+			ret = flr_result_to_errno(ret);
 			goto unlock;
 		}
 		sensor->streaming = false;
@@ -358,13 +409,13 @@ static int flir_boson_s_stream(struct v4l2_subdev *sd, int enable)
 
 unlock:
 	mutex_unlock(&sensor->lock);
-	return ret;
+	return ret == R_SUCCESS ? 0 : flr_result_to_errno(ret);
 }
 
 /* V4L2 Subdev Operations */
 static const struct v4l2_subdev_core_ops flir_boson_core_ops = {
 	.s_power = flir_boson_s_power,
-	.ioctl = flir_boson_ioctl,
+	// .ioctl = flir_boson_ioctl,
 	.log_status = v4l2_ctrl_subdev_log_status,
 	.subscribe_event = v4l2_ctrl_subdev_subscribe_event,
 	.unsubscribe_event = v4l2_event_subdev_unsubscribe,
@@ -421,6 +472,7 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 
 	sensor->dev = dev;
 	sensor->i2c_client = client;
+	sensor->command_count = get_random_u32() >> 23;
 	mutex_init(&sensor->lock);
 	dev_dbg(dev, "PROBE: Device structure initialized");
 
@@ -436,13 +488,13 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 		sensor->fmt.width, sensor->fmt.height, sensor->fmt.code);
 
 	/* Get reset GPIO */
-	sensor->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
-	if (IS_ERR(sensor->reset_gpio)) {
-		ret = PTR_ERR(sensor->reset_gpio);
-		dev_warn(dev, "Cannot get reset GPIO: %d\n", ret);
-		sensor->reset_gpio = NULL;
-	}
-	dev_dbg(dev, "PROBE: Reset GPIO %s", sensor->reset_gpio ? "configured" : "not available");
+	// sensor->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
+	// if (IS_ERR(sensor->reset_gpio)) {
+	// 	ret = PTR_ERR(sensor->reset_gpio);
+	// 	dev_warn(dev, "Cannot get reset GPIO: %d\n", ret);
+	// 	sensor->reset_gpio = NULL;
+	// }
+	// dev_dbg(dev, "PROBE: Reset GPIO %s", sensor->reset_gpio ? "configured" : "not available");
 
 	/* Parse device tree endpoint */
 	dev_dbg(dev, "PROBE: Parsing device tree endpoint");
@@ -468,7 +520,7 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	}
 
 	/* Get camera serial number */
-	if (flir_boson_get_camera_sn(sensor, &sensor->camera_sn) == 0)
+	if (flir_boson_get_int_val(sensor, BOSON_GETCAMERASN, &sensor->camera_sn) == R_SUCCESS)
 		dev_info(dev, "Camera SN: 0x%08X", sensor->camera_sn);
 
 	/* Initialize V4L2 subdev */
@@ -540,115 +592,6 @@ static const struct of_device_id flir_boson_dt_ids[] = {
 };
 MODULE_DEVICE_TABLE(of, flir_boson_dt_ids);
 
-#ifdef FLIR_SIMULATION_MODE
-
-/* ========================================================================
- * Simulation Mode: Platform Device Registration (Hardware-less)
- * ======================================================================== */
-
-#include <linux/platform_device.h>
-
-static struct flir_boson_dev *sim_sensor;
-
-static int flir_boson_sim_probe(struct platform_device *pdev)
-{
-	struct device *dev = &pdev->dev;
-	struct flir_boson_dev *sensor;
-	int ret;
-
-	dev_info(dev, "FLIR Boson+ Simulation Mode Probe");
-
-	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
-	if (!sensor)
-		return -ENOMEM;
-
-	sensor->dev = dev;
-	sensor->i2c_client = NULL; /* No I2C client in simulation mode */
-	sim_sensor = sensor;
-
-	/* Initialize mutex */
-	mutex_init(&sensor->lock);
-
-	/* Initialize device state */
-	sensor->powered = true;
-	sensor->streaming = false;
-	sensor->mipi_state = FLIR_MIPI_STATE_OFF;
-	sensor->command_count = 0;
-
-	/* Initialize default format */
-	sensor->current_format = &flir_boson_formats[0];
-	sensor->current_framesize = &flir_boson_framesizes[1]; /* 640x512 */
-	sensor->fmt.code = sensor->current_format->code;
-	sensor->fmt.width = sensor->current_framesize->width;
-	sensor->fmt.height = sensor->current_framesize->height;
-	sensor->fmt.field = V4L2_FIELD_NONE;
-	sensor->fmt.colorspace = V4L2_COLORSPACE_RAW;
-
-	/* Initialize V4L2 subdev */
-	v4l2_subdev_init(&sensor->sd, &flir_boson_subdev_ops);
-	sensor->sd.flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
-	sensor->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
-	sensor->sd.entity.ops = &flir_boson_media_ops;
-	sensor->sd.dev = dev;
-	strscpy(sensor->sd.name, FLIR_BOSON_NAME "-sim", sizeof(sensor->sd.name));
-
-	/* Initialize media pad */
-	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
-	ret = media_entity_pads_init(&sensor->sd.entity, 1, &sensor->pad);
-	if (ret) {
-		dev_err(dev, "Could not init media entity\n");
-		goto cleanup_mutex;
-	}
-
-	/* Set platform device data */
-	platform_set_drvdata(pdev, &sensor->sd);
-
-	/* Register V4L2 subdev */
-	ret = v4l2_async_register_subdev(&sensor->sd);
-	if (ret) {
-		dev_err(dev, "Could not register v4l2 device: %d\n", ret);
-		goto cleanup_entity;
-	}
-
-	dev_info(dev, "FLIR Boson+ Simulation Mode loaded successfully");
-	dev_info(dev, "Use: echo 1 > /sys/kernel/debug/flir_test to run protocol tests");
-
-	return 0;
-
-cleanup_entity:
-	media_entity_cleanup(&sensor->sd.entity);
-cleanup_mutex:
-	mutex_destroy(&sensor->lock);
-	return ret;
-}
-
-static int flir_boson_sim_remove(struct platform_device *pdev)
-{
-	struct v4l2_subdev *sd = platform_get_drvdata(pdev);
-	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
-
-	v4l2_async_unregister_subdev(&sensor->sd);
-	media_entity_cleanup(&sensor->sd.entity);
-	mutex_destroy(&sensor->lock);
-	sim_sensor = NULL;
-
-	dev_info(&pdev->dev, "FLIR Boson+ Simulation Mode removed");
-	return 0;
-}
-
-static struct platform_driver flir_boson_sim_driver = {
-	.driver = {
-		.name = FLIR_BOSON_NAME "-sim",
-	},
-	.probe = flir_boson_sim_probe,
-	.remove = flir_boson_sim_remove,
-};
-
-/* Simulation platform device */
-static struct platform_device *flir_sim_pdev;
-
-#else
-
 /* Hardware Mode: I2C Driver */
 static struct i2c_driver flir_boson_i2c_driver = {
 	.driver = {
@@ -660,61 +603,26 @@ static struct i2c_driver flir_boson_i2c_driver = {
 	.remove = flir_boson_remove,
 };
 
-#endif /* FLIR_SIMULATION_MODE */
+
 
 static int __init flir_boson_driver_init(void)
 {
-#ifdef FLIR_SIMULATION_MODE
-	int ret;
 
-	pr_info("FLIR Boson+ Driver: Starting in SIMULATION MODE\n");
-
-	/* Register platform driver for simulation */
-	ret = platform_driver_register(&flir_boson_sim_driver);
-	if (ret) {
-		pr_err("Failed to register simulation platform driver: %d\n", ret);
-		return ret;
-	}
-
-	/* Create simulation platform device */
-	flir_sim_pdev = platform_device_register_simple(FLIR_BOSON_NAME "-sim", -1, NULL, 0);
-	if (IS_ERR(flir_sim_pdev)) {
-		pr_err("Failed to register simulation platform device\n");
-		platform_driver_unregister(&flir_boson_sim_driver);
-		return PTR_ERR(flir_sim_pdev);
-	}
-
-	pr_info("FLIR Boson+ Simulation Mode ready\n");
-	pr_info("Use 'dmesg | grep FSLP_SIM' to view protocol traces\n");
-
-	return 0;
-#else
 	pr_info("FLIR Boson+ Driver: Starting in HARDWARE MODE\n");
 	return i2c_add_driver(&flir_boson_i2c_driver);
-#endif
 }
 module_init(flir_boson_driver_init);
 
 static void __exit flir_boson_driver_exit(void)
 {
-#ifdef FLIR_SIMULATION_MODE
-	pr_info("FLIR Boson+ Driver: Simulation mode cleanup\n");
-	if (flir_sim_pdev) {
-		platform_device_unregister(flir_sim_pdev);
-		flir_sim_pdev = NULL;
-	}
-	platform_driver_unregister(&flir_boson_sim_driver);
-#else
+
 	i2c_del_driver(&flir_boson_i2c_driver);
-#endif
+
 }
 module_exit(flir_boson_driver_exit);
 
-#ifdef FLIR_SIMULATION_MODE
-MODULE_DESCRIPTION("FLIR Boson+ MIPI Camera V4L2 Driver (Simulation Mode)");
-#else
 MODULE_DESCRIPTION("FLIR Boson+ MIPI Camera V4L2 Driver");
-#endif
+
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("FLIR Driver Development");
 MODULE_VERSION("1.0");

@@ -1,3 +1,0 @@
-[submodule "crosslink_mod"]
-	path = crosslink_mod
-	url = git@github.com:VideologyInc/kernel-module-crosslink.git

@@ -29,7 +29,9 @@ Homepage = "https://oem.flir.com/support/support-center/software/"
 
 [tool.setuptools]
 packages = ["BosonSDK", "BosonSDK.ClientFiles_Python", "BosonSDK.CommunicationFiles"]
-include-package-data = true
 
-[tool.setuptools_scm]
-write_to = "BosonSDK/_version.py"
+[tool.setuptools.package-data]
+"BosonSDK" = ["__init__.py", "_version.py", "LICENSE.txt", "SDK_README.txt", "VERSION"]
+
+# [tool.setuptools_scm]
+# write_to = "BosonSDK/_version.py"

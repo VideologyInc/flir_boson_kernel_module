@@ -7,9 +7,9 @@ import argparse
 from BosonSDK import CamAPI
 from BosonSDK.ClientFiles_Python import EnumTypes
 
-def start_mipi():
+def start_mipi(i2c_port=1):
     """Start MIPI streaming with YUV 4:2:2 configuration"""
-    cam = CamAPI.pyClient(manualport=1, useI2C=True, peripheralAddress=0x6a, I2C_TYPE="smbus")
+    cam = CamAPI.pyClient(manualport=i2c_port, useI2C=True, peripheralAddress=0x6a, I2C_TYPE="smbus")
     try:
         # Execute MIPI startup sequence
         ret = cam.dvoSetMipiState(EnumTypes.FLR_DVO_MIPI_STATE_E.FLR_DVO_MIPI_STATE_OFF)
@@ -46,9 +46,9 @@ def start_mipi():
     finally:
         cam.Close()
 
-def stop_mipi():
+def stop_mipi(i2c_port=1):
     """Stop MIPI streaming"""
-    cam = CamAPI.pyClient(manualport=1, useI2C=True, peripheralAddress=0x6a, I2C_TYPE="smbus")
+    cam = CamAPI.pyClient(manualport=i2c_port, useI2C=True, peripheralAddress=0x6a, I2C_TYPE="smbus")
 
     try:
         cam.dvoSetMipiState(EnumTypes.FLR_DVO_MIPI_STATE_E.FLR_DVO_MIPI_STATE_OFF)
@@ -67,12 +67,13 @@ def stop_mipi():
 def main():
     parser = argparse.ArgumentParser(description="FLIR Boson MIPI Control")
     parser.add_argument('action', choices=['start', 'stop'], help='start or stop MIPI streaming')
+    parser.add_argument('--port', '-p', type=int, default=1, help='I2C port number (default: 1)')
     args = parser.parse_args()
 
     if args.action == 'start':
-        success = start_mipi()
+        success = start_mipi(args.port)
     else:
-        success = stop_mipi()
+        success = stop_mipi(args.port)
 
     sys.exit(0 if success else 1)
 

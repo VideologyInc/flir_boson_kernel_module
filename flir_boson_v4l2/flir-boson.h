@@ -19,11 +19,10 @@
 #include "EnumTypes.h"
 #include "FunctionCodes.h"
 #include "ReturnCodes.h"
+/* Forward declarations to avoid circular includes */
 
 #define FLIR_BOSON_NAME "flir-boson"
 #define FLIR_BOSON_I2C_ADDR 0x6A
-
-
 
 /* FSLP Protocol Constants */
 #define FLIR_MAGIC_TOKEN_0    0x8E
@@ -36,75 +35,11 @@
 /* Boson Module Commands */
 #define BOSON_GETCAMERASN          0x00050002
 
-/* DVO Module Commands */
-// #define DVO_SET_OUTPUT_FORMAT      0x00060006
-// #define DVO_GET_OUTPUT_FORMAT      0x00060007
-// #define DVO_SET_DISPLAY_MODE       0x0006000D
-// #define DVO_GET_DISPLAY_MODE       0x0006000E
-// #define DVO_SET_TYPE               0x0006000F
-// #define DVO_GET_TYPE               0x00060010
-
-// #define DVO_SET_MIPI_STARTSTATE    0x00060022
-// #define DVO_GET_MIPI_STARTSTATE    0x00060023
-// #define DVO_SET_MIPI_STATE         0x00060024
-// #define DVO_GET_MIPI_STATE         0x00060025
-// #define DVO_SET_MIPI_CLOCKLANEMODE 0x00060026
-// #define DVO_GET_MIPI_CLOCKLANEMODE 0x00060027
-// #define DVO_SET_OUTPUT_INTERFACE   0x00060028
-// #define DVO_GET_OUTPUT_INTERFACE   0x00060029
-
-
-// /* FLIR DVO Output Interface Types */
-// enum flir_dvo_output_interface {
-//     FLR_DVO_CMOS = 0,
-// 	FLR_DVO_MIPI = 1,
-// 	FLR_DVO_OUTPUT_INTERFACE_END = 2,
-// };
-
-// /* FLIR DVO Types */
-// enum flir_dvo_type {
-//     FLR_DVO_TYPE_MONO16 = 0,
-//     FLR_DVO_TYPE_MONO8 = 1,
-//     FLR_DVO_TYPE_COLOR = 2,
-//     FLR_DVO_TYPE_ANALOG = 3,
-//     FLR_DVO_TYPE_RAW = 4,
-//     FLR_DVO_TYPE_MONO14 = 5,
-//     FLR_DVO_TYPE_TLINEAR = 6,
-//     FLR_DVO_TYPE_MONO12 = 7,
-//     FLR_DVO_TYPE_MONO8MONO14 = 8,
-//     FLR_DVO_TYPE_MONO8MONO12 = 9,
-//     FLR_DVO_TYPE_COLORMONO14 = 10,
-//     FLR_DVO_TYPE_COLORMONO12 = 11,
-//     FLR_DVO_TYPE_COLORMONO8 = 12,
-//     FLR_DVO_TYPE_COLORTLINEAR = 13,
-//     FLR_DVO_TYPE_MONO8TLINEAR = 14,
-//     FLR_DVO_TYPE_END = 15,
-// };
-
-// /* MIPI State Machine */
-// enum flir_mipi_state {
-//     FLR_DVO_MIPI_STATE_OFF = 0,
-// 	FLR_DVO_MIPI_STATE_PAUSED = 1,
-// 	FLR_DVO_MIPI_STATE_ACTIVE = 2,
-// 	FLR_DVO_MIPI_STATE_END = 3,
-// };
-
-// enum flir_display_mode_e {
-// 	FLR_DVO_CONTINUOUS = 0,
-// 	FLR_DVO_ONE_SHOT = 1,
-// 	FLR_DVO_DISPLAY_MODE_END = 2,
-// };
-
-// enum flir_mipi_clock_lane_mode_e {
-// 	FLR_DVO_MIPI_CLOCK_LANE_MODE_NON_CONTINUOUS = 0,
-// 	FLR_DVO_MIPI_CLOCK_LANE_MODE_CONTINUOUS = 1,
-// 	FLR_DVO_MIPI_CLOCK_LANE_MODE_END = 2,
-// };
-
 /* Supported Formats */
 struct flir_boson_format {
 	u32 code;
 	u32 flir_type;
+	u32 flir_mux_type;
 	u8 bpp;
 	const char *name;
 };
@@ -139,7 +74,7 @@ struct flir_boson_dev {
 	const struct flir_boson_framesize *current_framesize;
 
 	/* MIPI state */
-	int mipi_state;
+	u32 mipi_state;
 	bool streaming;
 	bool powered;
 
@@ -162,20 +97,20 @@ struct flir_boson_ioctl_fslp {
 #define FLIR_BOSON_IOCTL_FSLP_FRAME   _IOWR('F', 0x01, struct flir_boson_ioctl_fslp)
 #define FLIR_BOSON_IOCTL_GET_STATUS   _IOR('F', 0x03, u32)
 
-/* Function prototypes - Layer 1: I2C FSLP Framing (matches I2CFslp.py) */
-int flir_fslp_send_frame(struct flir_boson_dev *sensor, u8 channel_id,
-			 const u8 *payload, u32 payload_len);
-int flir_fslp_read_frame(struct flir_boson_dev *sensor, u8 channel_id,
-			 u8 *payload, u32 expected_len);
+/* Function prototypes - I2C Layer */
+FLR_RESULT I2C_readFrame(struct flir_boson_dev *sensor, u8* readData, u32* readBytes);
+FLR_RESULT I2C_writeFrame(struct flir_boson_dev *sensor, u8* writeData, u32 writeBytes);
 
-/* Layer 2: Command Dispatcher (matches Client_Dispatcher.py/c) */
-FLR_RESULT flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u32 fn_id,
-			    const u8 *send_data, u32 send_bytes,
-			    u8 *receive_data, u32 *receive_bytes);
+/* Function prototypes - Client Dispatcher Layer */
+FLR_RESULT CLIENT_dispatcher_Tx(struct flir_boson_dev *sensor, u32 seqNum, FLR_FUNCTION fnID, const u8 *sendData, const u32 sendBytes);
+FLR_RESULT CLIENT_dispatcher_Rx(struct flir_boson_dev *sensor, u32 *seqNum, u32 *fnID, const u8 *receiveData, u32 *receiveBytes);
+FLR_RESULT CLIENT_dispatcher(struct flir_boson_dev *sensor, u32 seqNum, FLR_FUNCTION fnID, const u8 *sendData, const u32 sendBytes, const u8 *receiveData, u32 *receiveBytes);
 
 /* Layer 3: Command Packagers (SDK-compatible API) */
-FLR_RESULT flir_boson_send_int_cmd(struct flir_boson_dev *sensor, u32 cmd, u32 val);
-FLR_RESULT flir_boson_get_int_val(struct flir_boson_dev *sensor, u32 cmd, u32 *val);
+FLR_RESULT flir_boson_send_int_cmd(struct flir_boson_dev *sensor, FLR_FUNCTION cmd, u32 val);
+FLR_RESULT flir_boson_get_int_val(struct flir_boson_dev *sensor, FLR_FUNCTION cmd, u32 *val);
+FLR_RESULT flir_boson_get_dvo_muxtype(struct flir_boson_dev *sensor, FLR_DVOMUX_OUTPUT_IF_E output, FLR_DVOMUX_SOURCE_E *source, FLR_DVOMUX_TYPE_E *type);
+FLR_RESULT flir_boson_set_dvo_muxtype(struct flir_boson_dev *sensor, FLR_DVOMUX_OUTPUT_IF_E output, FLR_DVOMUX_SOURCE_E source, FLR_DVOMUX_TYPE_E type);
 
 /* Legacy compatibility */
 // int flir_boson_fslp_send_frame(struct flir_boson_dev *sensor, const u8 *tx_data, u32 tx_len, u8 *rx_data, u32 rx_len);

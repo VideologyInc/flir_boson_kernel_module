@@ -172,7 +172,7 @@ static inline const char* flr_result_to_string(FLR_RESULT code) {
         case FLR_ERROR_CLOSING_COMM:                        return "FLR_ERROR_CLOSING_COMM";
         case FLR_COMM_CHECKSUM_ERROR:                       return "FLR_COMM_CHECKSUM_ERROR";
         case FLR_COMM_NO_DEV:                               return "FLR_COMM_NO_DEV";
-        case FLR_COMM_TIMEOUT_ERROR:                        return "FLR_COMM_TIMEOUT_ERROR";
+        case FLR_COMM_ERROR_WRITING_COMM:                   return "FLR_COMM_ERROR_WRITING_COMM";
         case FLR_COMM_ERROR_READING_COMM:                   return "FLR_COMM_ERROR_READING_COMM";
         case FLR_COMM_COUNT_ERROR:                          return "FLR_COMM_COUNT_ERROR";
         case FLR_OPERATION_CANCELED:                        return "FLR_OPERATION_CANCELED";

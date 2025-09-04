@@ -70,18 +70,21 @@ static const struct flir_boson_format flir_boson_formats[] = {
 	{
 		.code = MEDIA_BUS_FMT_Y8_1X8,
 		.flir_type = FLR_DVO_TYPE_MONO8,
+		.flir_mux_type = FLR_DVOMUX_TYPE_MONO8,
 		.bpp = 8,
 		.name = "RAW8",
 	},
 	{
 		.code = MEDIA_BUS_FMT_Y14_1X14,
 		.flir_type = FLR_DVO_TYPE_MONO14,
+		.flir_mux_type = FLR_DVOMUX_TYPE_MONO14,
 		.bpp = 14,
 		.name = "RAW14",
 	},
 	{
 		.code = MEDIA_BUS_FMT_UYVY8_1X16,
 		.flir_type = FLR_DVO_TYPE_COLOR,
+		.flir_mux_type = FLR_DVOMUX_TYPE_COLOR,
 		.bpp = 16,
 		.name = "UYVY",
 	},
@@ -146,26 +149,25 @@ static int flir_boson_s_power(struct v4l2_subdev *sd, int on)
 
 		/* Initialize MIPI interface */
 		dev_dbg(sensor->dev, "POWER: Setting output interface to MIPI");
-		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF);
+		if (ret == R_SUCCESS)
+		    ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF);
 		if (ret == R_SUCCESS)
 			ret = flir_boson_send_int_cmd(sensor, DVO_SETTYPE, sensor->current_format->flir_type);
 		if (ret == R_SUCCESS)
-			ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPICLOCKLANEMODE, FLR_DVO_MIPI_CLOCK_LANE_MODE_CONTINUOUS);
+			ret = flir_boson_send_int_cmd(sensor, DVO_SETOUTPUTFORMAT, sensor->current_format->flir_type == FLR_DVO_TYPE_COLOR ? FLR_DVO_YCBCR : FLR_DVO_IR16);
 		if (ret == R_SUCCESS)
 			ret = flir_boson_send_int_cmd(sensor, DVO_SETOUTPUTINTERFACE, FLR_DVO_MIPI);
 
 		if (ret != R_SUCCESS) {
 			dev_err(sensor->dev, "Failed to set MIPI interface: %s\n", flr_result_to_string(ret));
 			ret = flr_result_to_errno(ret);
-			goto unlock;
+			// goto unlock;
 		}
 		dev_dbg(sensor->dev, "POWER: Output interface set to MIPI successfully");
-
 		sensor->powered = 1;
 		ret = flir_boson_get_int_val(sensor, DVO_GETMIPISTATE, &sensor->mipi_state);
 		if (ret != R_SUCCESS)
 			dev_warn(sensor->dev, "Failed to get MIPI state: %s", flr_result_to_string(ret));
-		sensor->command_count = 0; /* Initialize sequence counter for SDK commands */
 	} else if (!on && sensor->powered) {
 		/* Stop streaming if active */
 		if (sensor->streaming) {
@@ -238,6 +240,8 @@ static int flir_boson_enum_mbus_code(struct v4l2_subdev *sd,
 	if (code->pad != 0 || code->index >= FLIR_BOSON_NUM_FORMATS)
 		return -EINVAL;
 
+	dev_dbg(to_flir_boson_dev(sd)->dev, "ENUM_MBUS_CODE: index=%u", code->index);
+
 	code->code = flir_boson_formats[code->index].code;
 	return 0;
 }
@@ -289,6 +293,7 @@ static int flir_boson_get_fmt(struct v4l2_subdev *sd,
 	if (format->pad != 0)
 		return -EINVAL;
 
+	dev_dbg(sensor->dev, "FORMAT: Getting current format - powered=%d, streaming=%d", sensor->powered, sensor->streaming);
 	mutex_lock(&sensor->lock);
 	format->format = sensor->fmt;
 	mutex_unlock(&sensor->lock);
@@ -296,9 +301,7 @@ static int flir_boson_get_fmt(struct v4l2_subdev *sd,
 	return 0;
 }
 
-static int flir_boson_set_fmt(struct v4l2_subdev *sd,
-			      struct v4l2_subdev_state *sd_state,
-			      struct v4l2_subdev_format *format)
+static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *sd_state, struct v4l2_subdev_format *format)
 {
 	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
 	const struct flir_boson_format *new_format;
@@ -309,13 +312,10 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd,
 		return -EINVAL;
 
 	new_format = flir_boson_find_format(format->format.code);
-	new_framesize = flir_boson_find_framesize(format->format.width,
-						  format->format.height);
+	new_framesize = flir_boson_find_framesize(format->format.width, format->format.height);
 
-	dev_dbg(sensor->dev, "FORMAT: Setting format - code=0x%08X, width=%u, height=%u",
-		format->format.code, format->format.width, format->format.height);
-	dev_dbg(sensor->dev, "FORMAT: New format type=%u, current powered=%d, streaming=%d",
-		new_format->flir_type, sensor->powered, sensor->streaming);
+	dev_dbg(sensor->dev, "FORMAT: Setting format - code=0x%08X, width=%u, height=%u", format->format.code, format->format.width, format->format.height);
+	dev_dbg(sensor->dev, "FORMAT: New format type=%u, current powered=%d, streaming=%d", new_format->flir_type, sensor->powered, sensor->streaming);
 
 	mutex_lock(&sensor->lock);
 
@@ -345,8 +345,38 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd,
 		if (ret != R_SUCCESS) {
 			dev_err(sensor->dev, "FORMAT: Failed to set DVO type: %s", flr_result_to_string(ret));
 			ret = flr_result_to_errno(ret);
-			goto unlock;
+			// goto unlock;
 		}
+
+		/* Set new DVO output format */
+		u32 outformat = FLR_DVO_DEFAULT_FORMAT;
+		outformat = (new_format->flir_type == FLR_DVO_TYPE_COLOR) ? FLR_DVO_YCBCR : FLR_DVO_IR16;
+		dev_dbg(sensor->dev, "FORMAT: Setting DVO output-format to %d", outformat);
+		ret = flir_boson_send_int_cmd(sensor, DVO_SETOUTPUTFORMAT, outformat);
+		if (ret != R_SUCCESS) {
+			dev_err(sensor->dev, "FORMAT: Failed to set DVO output-format: %s", flr_result_to_string(ret));
+			ret = flr_result_to_errno(ret);
+			// goto unlock;
+		}
+
+		flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF);
+
+		/* Set new DVO muxtype */
+		dev_dbg(sensor->dev, "FORMAT: Setting DVO muxtype to mipi and %d", new_format->flir_mux_type);
+		ret = flir_boson_set_dvo_muxtype(sensor, FLR_DVOMUX_OUTPUT_IF_MIPITX, FLR_DVOMUX_SRC_IR, (FLR_DVOMUX_TYPE_E)new_format->flir_mux_type);
+		if (ret != R_SUCCESS) {
+			dev_err(sensor->dev, "FORMAT: Failed to set DVO muxtype: %s", flr_result_to_string(ret));
+			ret = flr_result_to_errno(ret);
+			// goto unlock;
+		}
+
+		// dev_dbg(sensor->dev, "FORMAT: setting output to mipi");
+		// ret = flir_boson_send_int_cmd(sensor, DVO_SETOUTPUTINTERFACE, FLR_DVO_MIPI);
+		// if (ret != R_SUCCESS) {
+  //           dev_err(sensor->dev, "FORMAT: Failed to set DVO output-interface: %s", flr_result_to_string(ret));
+  //           ret = flr_result_to_errno(ret);
+  //           goto unlock;
+  //       }
 
 		sensor->current_format = new_format;
 		sensor->current_framesize = new_framesize;
@@ -360,13 +390,13 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd,
 	sensor->fmt.width = new_framesize->width;
 	sensor->fmt.height = new_framesize->height;
 	sensor->fmt.field = V4L2_FIELD_NONE;
-	sensor->fmt.colorspace = V4L2_COLORSPACE_RAW;
+	sensor->fmt.colorspace = new_format->flir_type == FLR_DVO_TYPE_COLOR ? V4L2_COLORSPACE_SRGB : V4L2_COLORSPACE_RAW;
 
 	format->format = sensor->fmt;
 
 unlock:
 	mutex_unlock(&sensor->lock);
-	return ret == R_SUCCESS ? 0 : (ret > 0 ? ret : flr_result_to_errno(ret));
+	return 0; //ret == R_SUCCESS ? 0 : (ret > 0 ? ret : flr_result_to_errno(ret));
 }
 
 /* V4L2 Subdev Video Operations */
@@ -374,6 +404,7 @@ static int flir_boson_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
 	FLR_RESULT ret = R_SUCCESS;
+	u32 state;
 
 	dev_dbg(sensor->dev, "%s: stream %s\n", __func__, enable ? "on" : "off");
 	dev_dbg(sensor->dev, "STREAM: Current state - powered=%d, streaming=%d, mipi_state=%d",
@@ -382,18 +413,19 @@ static int flir_boson_s_stream(struct v4l2_subdev *sd, int enable)
 	mutex_lock(&sensor->lock);
 
 	if (enable && !sensor->streaming) {
+        ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPICLOCKLANEMODE, FLR_DVO_MIPI_CLOCK_LANE_MODE_CONTINUOUS);
 		/* Start streaming */
 		dev_dbg(sensor->dev, "STREAM: Starting streaming - setting MIPI to ACTIVE");
 		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_ACTIVE);
-		if (ret != R_SUCCESS) {
-			dev_err(sensor->dev, "Failed to start MIPI: %s\n", flr_result_to_string(ret));
-			ret = flr_result_to_errno(ret);
-			goto unlock;
-		}
+		// if (ret != R_SUCCESS) {
+		// 	dev_err(sensor->dev, "Failed to start MIPI: %s\n", flr_result_to_string(ret));
+		// 	ret = flr_result_to_errno(ret);
+		// 	goto unlock;
+		// }
 		sensor->streaming = true;
 		dev_dbg(sensor->dev, "STREAM: Streaming started successfully");
-		// ret = flir_boson_get_mipi_state(sensor, &state);
-		// dev_dbg(sensor->dev, "STREAM_MIPI_State: %d", state);
+		ret = flir_boson_get_int_val(sensor, DVO_GETMIPISTATE, &state);
+		dev_dbg(sensor->dev, "mipi State: %d", state);
 	} else if (!enable && sensor->streaming) {
 		/* Stop streaming */
 		dev_dbg(sensor->dev, "STREAM: Stopping streaming - setting MIPI to OFF");
@@ -477,7 +509,7 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	dev_dbg(dev, "PROBE: Device structure initialized");
 
 	/* Initialize default format */
-	sensor->current_format = &flir_boson_formats[0];
+	sensor->current_format = &flir_boson_formats[2];
 	sensor->current_framesize = &flir_boson_framesizes[1]; /* 640x512 */
 	sensor->fmt.code = sensor->current_format->code;
 	sensor->fmt.width = sensor->current_framesize->width;
@@ -488,16 +520,15 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 		sensor->fmt.width, sensor->fmt.height, sensor->fmt.code);
 
 	/* Get reset GPIO */
-	// sensor->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
-	// if (IS_ERR(sensor->reset_gpio)) {
-	// 	ret = PTR_ERR(sensor->reset_gpio);
-	// 	dev_warn(dev, "Cannot get reset GPIO: %d\n", ret);
-	// 	sensor->reset_gpio = NULL;
-	// }
-	// dev_dbg(dev, "PROBE: Reset GPIO %s", sensor->reset_gpio ? "configured" : "not available");
+	sensor->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
+	if (IS_ERR(sensor->reset_gpio)) {
+		ret = PTR_ERR(sensor->reset_gpio);
+		dev_warn(dev, "Cannot get reset GPIO: %d\n", ret);
+		sensor->reset_gpio = NULL;
+	}
+	dev_dbg(dev, "PROBE: Reset GPIO %s", sensor->reset_gpio ? "configured" : "not available");
 
 	/* Parse device tree endpoint */
-	dev_dbg(dev, "PROBE: Parsing device tree endpoint");
 	endpoint = fwnode_graph_get_next_endpoint(dev_fwnode(dev), NULL);
 	if (!endpoint) {
 		dev_err(dev, "Endpoint node not found\n");
@@ -505,26 +536,18 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	}
 
 	ret = v4l2_fwnode_endpoint_parse(endpoint, &sensor->ep);
-	dev_dbg(dev, "PROBE: Endpoint parse result=%d", ret);
 	fwnode_handle_put(endpoint);
 	if (ret) {
 		dev_err(dev, "Could not parse endpoint\n");
 		return ret;
 	}
 
-	dev_dbg(dev, "PROBE: Bus type validation - type=%d (expected CSI2_DPHY=%d)",
-		sensor->ep.bus_type, V4L2_MBUS_CSI2_DPHY);
 	if (sensor->ep.bus_type != V4L2_MBUS_CSI2_DPHY) {
 		dev_err(dev, "Unsupported bus type %d\n", sensor->ep.bus_type);
 		return -EINVAL;
 	}
 
-	/* Get camera serial number */
-	if (flir_boson_get_int_val(sensor, BOSON_GETCAMERASN, &sensor->camera_sn) == R_SUCCESS)
-		dev_info(dev, "Camera SN: 0x%08X", sensor->camera_sn);
-
 	/* Initialize V4L2 subdev */
-	dev_dbg(dev, "PROBE: Initializing V4L2 subdev");
 	v4l2_i2c_subdev_init(&sensor->sd, client, &flir_boson_subdev_ops);
 	sensor->sd.flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
 	sensor->sd.entity.function = MEDIA_ENT_F_CAM_SENSOR;
@@ -533,7 +556,6 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	dev_dbg(dev, "PROBE: V4L2 subdev initialized");
 
 	/* Initialize media pad */
-	dev_dbg(dev, "PROBE: Initializing media pad");
 	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
 	ret = media_entity_pads_init(&sensor->sd.entity, 1, &sensor->pad);
 	if (ret) {
@@ -550,6 +572,25 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 		goto cleanup_entity;
 	}
 	dev_dbg(dev, "PROBE: V4L2 subdev registered successfully");
+
+	if (sensor->reset_gpio) {
+		gpiod_set_value_cansleep(sensor->reset_gpio, 1);
+		msleep(4);
+		gpiod_set_value_cansleep(sensor->reset_gpio, 0);
+
+	    /* Wait for camera boot (2.5 seconds as per spec) */
+		msleep(2700);
+	}
+
+	/* Get camera serial number */
+	if (flir_boson_get_int_val(sensor, BOSON_GETCAMERASN, &sensor->camera_sn) == R_SUCCESS)
+		dev_info(dev, "Camera SN: 0x%08X", sensor->camera_sn);
+	else
+        dev_warn(dev, "Could not read camera serial number");
+
+	if (flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF) != R_SUCCESS)
+        dev_warn(dev, "Could not set MIPI state to OFF");
+	sensor->mipi_state = FLR_DVO_MIPI_STATE_OFF;
 
 	dev_info(dev, "FLIR Boson+ MIPI camera driver loaded\n");
 	dev_dbg(dev, "PROBE: Complete - device ready for operation");

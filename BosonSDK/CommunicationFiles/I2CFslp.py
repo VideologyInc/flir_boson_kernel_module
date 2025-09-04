@@ -27,18 +27,18 @@ class I2CFslp(FslpBase):
             super().__init__(I2CAardvarkPort(portID=portID, baudrate=baudrate, peripheralAddress=peripheralAddress))
         else:
             super().__init__(I2CDriverPort(portID=portID, baudrate=baudrate, peripheralAddress=peripheralAddress))
-    
+
     def sendFrame(self, channelID, data, dataSize):
         if not self.port.isOpen():
             raise Exception("I2C port is not open")
         #I2C FSLP-like header
         # shallow copy token
-        sendBuffer = MAGIC_TOKEN[:] 
+        sendBuffer = MAGIC_TOKEN[:]
         # declare big endian u16 data length
         sendBuffer.extend(pack(">H",dataSize))
         # add data
         sendBuffer.extend(data)
-        
+
         self.port.write(sendBuffer)
 
     def readFrame(self, channelID, expectedReceiveBytes):
@@ -48,11 +48,11 @@ class I2CFslp(FslpBase):
         receiveBuffer = self.port.read(4)
         # evaluate token
         if receiveBuffer[0:2] != MAGIC_TOKEN[0:2]:
-            raise ValueError("Did not receive MAGIC_TOKEN")
+            raise ValueError("Did not receive MAGIC_TOKEN: ", receiveBuffer)
         # determine big endian u16 data length
         toRead = unpack(">H",receiveBuffer[2:])[0]
         if toRead != expectedReceiveBytes:
             print("WARNING MSG declared {:d} bytes but {:d} expected)".format(toRead, expectedReceiveBytes))
-        
+
         receiveBuffer = self.port.read(toRead)
         return receiveBuffer

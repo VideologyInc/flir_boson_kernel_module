@@ -77,7 +77,7 @@ class I2CSMBusPort(PortBase):
 
     def write(self, data):
         msg = self.i2c_msg.write(self.peripheralAddress, data)
-        print("i2cwrite: ", ":".join("{:02x}".format(c) for c in data))
+        # print("i2cwrite: ", ":".join("{:02x}".format(c) for c in data))
         self.port.i2c_rdwr(msg)
 
     def read(self, numberOfBytes):
@@ -85,7 +85,7 @@ class I2CSMBusPort(PortBase):
         self.port.i2c_rdwr(msg)
         if msg.len != numberOfBytes:
             raise IOError(f"Read incorrect number of bytes. Got {msg.len} instead of {numberOfBytes}")
-        print("i2cread: ", ":".join("{:02x}".format(c) for c in msg.buf[0:msg.len]))
+        # print("i2cread: ", ":".join("{:02x}".format(c) for c in msg.buf[0:msg.len]))
         return bytearray(msg.buf[0:msg.len])
 
     def __del__(self):

@@ -1,7 +1,11 @@
+#!/usr/bin/env python3
+
 import os
 from BosonSDK import CamAPI
 
 myCam = CamAPI.pyClient(manualport=1, useI2C=True, peripheralAddress=0x6a, I2C_TYPE="smbus")
+# myCam.fslp.port.read(100)
+# myCam.fslp.port.read(10)
 
 result1, cam_sernum = myCam.bosonGetCameraSN()
 result2, sensor_sernum = myCam.bosonGetSensorSN()

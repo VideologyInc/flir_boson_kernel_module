@@ -28,7 +28,7 @@ classifiers = [
 Homepage = "https://oem.flir.com/support/support-center/software/"
 
 [tool.setuptools]
-packages = ["BosonSDK", "BosonSDK.ClientFiles_Python", "BosonSDK.CommunicationFiles", "BosonSDK.FSLP_Files"]
+packages = ["BosonSDK", "BosonSDK.ClientFiles_Python", "BosonSDK.CommunicationFiles"]
 include-package-data = true
 
 [tool.setuptools_scm]

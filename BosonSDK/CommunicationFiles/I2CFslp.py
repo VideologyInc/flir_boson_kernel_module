@@ -45,14 +45,18 @@ class I2CFslp(FslpBase):
         if not self.port.isOpen():
             raise Exception("Port is not open")
         #I2C FSLP-like header
-        receiveBuffer = self.port.read(4)
-        # evaluate token
-        if receiveBuffer[0:2] != MAGIC_TOKEN[0:2]:
-            raise ValueError("Did not receive MAGIC_TOKEN: ", receiveBuffer)
-        # determine big endian u16 data length
-        toRead = unpack(">H",receiveBuffer[2:])[0]
+        try:
+            r1 = self.port.read(1)
+        except TimeoutError:
+            r1 = bytearray([0x8e])
+        r2 = self.port.read(1)
+        token = bytearray([r1[0], r2[0]])
+        if token != MAGIC_TOKEN and [r1,r2] != bytearray([0x7E, 0xA1]):
+            print("WARNING: Did not receive MAGIC_TOKEN: ", [r1,r2])
+            raise ValueError("Did not receive MAGIC_TOKEN: ", token)
+        len = self.port.read(2)
+        toRead = unpack(">H",len[:2])[0]
         if toRead != expectedReceiveBytes:
             print("WARNING MSG declared {:d} bytes but {:d} expected)".format(toRead, expectedReceiveBytes))
-
         receiveBuffer = self.port.read(toRead)
         return receiveBuffer

@@ -36,6 +36,12 @@ def CLIENT_dispatch(seqNum, fnID, sendData, sendBytes, expectedReceiveBytes, fsl
     ReadFrame = fslp.readFrame
     CommandChannel = 0x00
     #receivePayload = SendToCamera(sendPayload,sendBytes+12,expectedReceiveBytes+12)
+
+    while True:
+        res = fslp.port.read(4)
+        if res == bytearray(b'\xff\xff\xff\xff'):
+            break
+
     SendFrame(CommandChannel,sendPayload,sendBytes+12)
     # sleep(0.01)
 

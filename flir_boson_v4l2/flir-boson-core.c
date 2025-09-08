@@ -150,13 +150,13 @@ static int flir_boson_s_power(struct v4l2_subdev *sd, int on)
 		/* Initialize MIPI interface */
 		dev_dbg(sensor->dev, "POWER: Setting output interface to MIPI");
 		if (ret == R_SUCCESS)
-		    ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF);
+		    ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF, 1);
 		if (ret == R_SUCCESS)
-			ret = flir_boson_send_int_cmd(sensor, DVO_SETTYPE, sensor->current_format->flir_type);
+			ret = flir_boson_send_int_cmd(sensor, DVO_SETTYPE, sensor->current_format->flir_type, 100);
 		if (ret == R_SUCCESS)
-			ret = flir_boson_send_int_cmd(sensor, DVO_SETOUTPUTFORMAT, sensor->current_format->flir_type == FLR_DVO_TYPE_COLOR ? FLR_DVO_YCBCR : FLR_DVO_IR16);
+			ret = flir_boson_send_int_cmd(sensor, DVO_SETOUTPUTFORMAT, sensor->current_format->flir_type == FLR_DVO_TYPE_COLOR ? FLR_DVO_YCBCR : FLR_DVO_IR16, 1);
 		if (ret == R_SUCCESS)
-			ret = flir_boson_send_int_cmd(sensor, DVO_SETOUTPUTINTERFACE, FLR_DVO_MIPI);
+			ret = flir_boson_send_int_cmd(sensor, DVO_SETOUTPUTINTERFACE, FLR_DVO_MIPI, 100);
 
 		if (ret != R_SUCCESS) {
 			dev_err(sensor->dev, "Failed to set MIPI interface: %s\n", flr_result_to_string(ret));
@@ -172,7 +172,7 @@ static int flir_boson_s_power(struct v4l2_subdev *sd, int on)
 		/* Stop streaming if active */
 		if (sensor->streaming) {
 			dev_dbg(sensor->dev, "POWER: Stopping streaming during power down");
-			ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF);
+			ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF, 1);
 			if (ret != R_SUCCESS)
 				dev_warn(sensor->dev, "Failed to stop MIPI during power down: %s", flr_result_to_string(ret));
 			sensor->streaming = 0;
@@ -332,7 +332,7 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
 
 		/* Set MIPI state to OFF before changing format */
 		dev_dbg(sensor->dev, "FORMAT: Setting MIPI to OFF before format change");
-		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF);
+		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF, 1);
 		if (ret != R_SUCCESS) {
 			dev_err(sensor->dev, "FORMAT: Failed to set MIPI OFF: %s", flr_result_to_string(ret));
 			ret = flr_result_to_errno(ret);
@@ -341,7 +341,7 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
 
 		/* Set new DVO type */
 		dev_dbg(sensor->dev, "FORMAT: Setting DVO type to mipi");
-		ret = flir_boson_send_int_cmd(sensor, DVO_SETTYPE, new_format->flir_type);
+		ret = flir_boson_send_int_cmd(sensor, DVO_SETTYPE, new_format->flir_type, 100);
 		if (ret != R_SUCCESS) {
 			dev_err(sensor->dev, "FORMAT: Failed to set DVO type: %s", flr_result_to_string(ret));
 			ret = flr_result_to_errno(ret);
@@ -352,14 +352,14 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
 		u32 outformat = FLR_DVO_DEFAULT_FORMAT;
 		outformat = (new_format->flir_type == FLR_DVO_TYPE_COLOR) ? FLR_DVO_YCBCR : FLR_DVO_IR16;
 		dev_dbg(sensor->dev, "FORMAT: Setting DVO output-format to %d", outformat);
-		ret = flir_boson_send_int_cmd(sensor, DVO_SETOUTPUTFORMAT, outformat);
+		ret = flir_boson_send_int_cmd(sensor, DVO_SETOUTPUTFORMAT, outformat, 1);
 		if (ret != R_SUCCESS) {
 			dev_err(sensor->dev, "FORMAT: Failed to set DVO output-format: %s", flr_result_to_string(ret));
 			ret = flr_result_to_errno(ret);
 			// goto unlock;
 		}
 
-		flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF);
+		flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF, 1);
 
 		/* Set new DVO muxtype */
 		dev_dbg(sensor->dev, "FORMAT: Setting DVO muxtype to mipi and %d", new_format->flir_mux_type);
@@ -413,10 +413,10 @@ static int flir_boson_s_stream(struct v4l2_subdev *sd, int enable)
 	mutex_lock(&sensor->lock);
 
 	if (enable && !sensor->streaming) {
-        ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPICLOCKLANEMODE, FLR_DVO_MIPI_CLOCK_LANE_MODE_CONTINUOUS);
+        ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPICLOCKLANEMODE, FLR_DVO_MIPI_CLOCK_LANE_MODE_CONTINUOUS, 1);
 		/* Start streaming */
 		dev_dbg(sensor->dev, "STREAM: Starting streaming - setting MIPI to ACTIVE");
-		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_ACTIVE);
+		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_ACTIVE, 400);
 		// if (ret != R_SUCCESS) {
 		// 	dev_err(sensor->dev, "Failed to start MIPI: %s\n", flr_result_to_string(ret));
 		// 	ret = flr_result_to_errno(ret);
@@ -429,7 +429,7 @@ static int flir_boson_s_stream(struct v4l2_subdev *sd, int enable)
 	} else if (!enable && sensor->streaming) {
 		/* Stop streaming */
 		dev_dbg(sensor->dev, "STREAM: Stopping streaming - setting MIPI to OFF");
-		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF);
+		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF, 1);
 		if (ret != R_SUCCESS) {
 			dev_err(sensor->dev, "Failed to stop MIPI: %s\n", flr_result_to_string(ret));
 			ret = flr_result_to_errno(ret);
@@ -588,7 +588,7 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	else
         dev_warn(dev, "Could not read camera serial number");
 
-	if (flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF) != R_SUCCESS)
+	if (flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF, 1) != R_SUCCESS)
         dev_warn(dev, "Could not set MIPI state to OFF");
 	sensor->mipi_state = FLR_DVO_MIPI_STATE_OFF;
 

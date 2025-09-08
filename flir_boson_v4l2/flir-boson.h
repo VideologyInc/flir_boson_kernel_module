@@ -101,14 +101,9 @@ struct flir_boson_ioctl_fslp {
 FLR_RESULT I2C_readFrame(struct flir_boson_dev *sensor, u8* readData, u32* readBytes);
 FLR_RESULT I2C_writeFrame(struct flir_boson_dev *sensor, u8* writeData, u32 writeBytes);
 
-/* Function prototypes - Client Dispatcher Layer */
-FLR_RESULT CLIENT_dispatcher_Tx(struct flir_boson_dev *sensor, u32 seqNum, FLR_FUNCTION fnID, const u8 *sendData, const u32 sendBytes);
-FLR_RESULT CLIENT_dispatcher_Rx(struct flir_boson_dev *sensor, u32 *seqNum, u32 *fnID, const u8 *receiveData, u32 *receiveBytes);
-FLR_RESULT CLIENT_dispatcher(struct flir_boson_dev *sensor, u32 seqNum, FLR_FUNCTION fnID, const u8 *sendData, const u32 sendBytes, const u8 *receiveData, u32 *receiveBytes);
-
 /* Layer 3: Command Packagers (SDK-compatible API) */
-FLR_RESULT flir_boson_send_int_cmd(struct flir_boson_dev *sensor, FLR_FUNCTION cmd, u32 val);
-FLR_RESULT flir_boson_get_int_val(struct flir_boson_dev *sensor, FLR_FUNCTION cmd, u32 *val);
+FLR_RESULT flir_boson_send_int_cmd(struct flir_boson_dev *sensor, u32 cmd, u32 val, u32 delay_ms);
+FLR_RESULT flir_boson_get_int_val(struct flir_boson_dev *sensor, u32 cmd, u32 *val);
 FLR_RESULT flir_boson_get_dvo_muxtype(struct flir_boson_dev *sensor, FLR_DVOMUX_OUTPUT_IF_E output, FLR_DVOMUX_SOURCE_E *source, FLR_DVOMUX_TYPE_E *type);
 FLR_RESULT flir_boson_set_dvo_muxtype(struct flir_boson_dev *sensor, FLR_DVOMUX_OUTPUT_IF_E output, FLR_DVOMUX_SOURCE_E source, FLR_DVOMUX_TYPE_E type);
 

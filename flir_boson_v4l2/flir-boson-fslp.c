@@ -25,13 +25,7 @@ static int flir_boson_i2c_write(struct flir_boson_dev *sensor, const u8 *data, s
 	struct i2c_msg msg = { .addr=sensor->i2c_client->addr, .flags=0, .len=len, .buf=(u8 *)data};
 	int ret = 0;
 
-	// dev_dbg(sensor->dev, "I2C_WRITE: addr=0x%02x, len=%zu",
-		// sensor->i2c_client->addr, len);
-	// print_hex_dump_debug("I2C_WRITE_DATA: ", DUMP_PREFIX_OFFSET, 16, 1, data, len, true);
-
 	ret = i2c_transfer(sensor->i2c_client->adapter, &msg, 1);
-
-	// dev_dbg(sensor->dev, "I2C_WRITE: result=%d (expected=1)", ret);
 
 	return ret == 1 ? 0 : -EIO;
 }
@@ -40,19 +34,11 @@ static int flir_boson_i2c_read(struct flir_boson_dev *sensor, u8 *data, size_t l
 	struct i2c_msg msg = {.addr=sensor->i2c_client->addr, .flags=I2C_M_RD, .len=len, .buf=data};
 	int ret = 0;
 
-	// dev_dbg(sensor->dev, "I2C_READ: addr=0x%02x, len=%zu", sensor->i2c_client->addr, len);
-
 	ret = i2c_transfer(sensor->i2c_client->adapter, &msg, 1);
-
-	// dev_dbg(sensor->dev, "I2C_READ: result=%d (expected=1)", ret);
-	if (ret == 1) {
-		// print_hex_dump_debug("I2C_READ_DATA: ", DUMP_PREFIX_OFFSET, 16, 1, data, len, true);
-	}
 
 	return ret == 1 ? 0 : -EIO;
 }
 
-/* UINT32_ToBytes - copied from SDK/ClientFiles_MSVC/Serializer_BuiltIn.c */
 static void UINT32_ToBytes(u32 inVal, u8 *outBuff)
 {
 	u8 *outPtr = outBuff;
@@ -149,7 +135,7 @@ int flir_fslp_read_frame(struct flir_boson_dev *sensor, u8 *payload, u32 expecte
 
 	/* Read payload data */
 	if (payload_len > 0) {
-		dev_dbg(sensor->dev, "FSLP read: reading payload (%u bytes)", payload_len);
+		// dev_dbg(sensor->dev, "FSLP read: reading payload (%u bytes)", payload_len);
 		ret = flir_boson_i2c_read(sensor, payload, payload_len);
 		if (ret) {
 			dev_err(sensor->dev, "Failed to read FSLP payload: %d\n", ret);
@@ -224,7 +210,7 @@ FLR_RESULT flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u
 
 	/* Retry logic for sequence mismatch */
 	for (retry = 0; retry < 2; retry++) {
-		dev_dbg(sensor->dev, "Reading response: expected_len=%u, retry=%d", expected_resp_len, retry);
+		// dev_dbg(sensor->dev, "Reading response: expected_len=%u, retry=%d", expected_resp_len, retry);
 		ret = flir_fslp_read_frame(sensor, response_payload, expected_resp_len);
 		if (ret) {
 			dev_err(sensor->dev, "Failed to read response: %d\n", ret);
@@ -285,7 +271,7 @@ FLR_RESULT flir_command_dispatcher(struct flir_boson_dev *sensor, u32 seq_num, u
 		memcpy(receive_data, resp_ptr, *receive_bytes);
 	}
 
-	dev_dbg(sensor->dev, "Command 0x%08X completed successfully\n", fn_id);
+	// dev_dbg(sensor->dev, "Command 0x%08X completed successfully\n", fn_id);
 	return R_SUCCESS;
 }
 
@@ -308,7 +294,7 @@ FLR_RESULT flir_boson_send_int_cmd(struct flir_boson_dev *sensor, u32 cmd, u32 v
 
 	ret = flir_command_dispatcher(sensor, seq_num, cmd, send_data, sizeof(send_data), receive_data, &receive_bytes, delay_ms);
 
-	dev_dbg(sensor->dev, "CMD: flir_boson_set_output_interface result=%d", ret);
+	// dev_dbg(sensor->dev, "CMD: flir_boson_set_output_interface result=%d", ret);
 	return ret;
 }
 

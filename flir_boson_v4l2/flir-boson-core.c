@@ -67,25 +67,23 @@ static int flr_result_to_errno(FLR_RESULT result)
 
 /* Supported formats */
 static const struct flir_boson_format flir_boson_formats[] = {
-	{
-		.code = MEDIA_BUS_FMT_Y8_1X8,
-		.flir_type = FLR_DVO_TYPE_MONO8,
-		.flir_mux_type = FLR_DVOMUX_TYPE_MONO8,
-		.bpp = 8,
-		.name = "RAW8",
-	},
-	{
-		.code = MEDIA_BUS_FMT_Y14_1X14,
-		.flir_type = FLR_DVO_TYPE_MONO14,
-		.flir_mux_type = FLR_DVOMUX_TYPE_MONO14,
-		.bpp = 14,
-		.name = "RAW14",
-	},
+	// {
+	// 	.code = MEDIA_BUS_FMT_Y8_1X8,
+	// 	.flir_type = FLR_DVO_TYPE_MONO8,
+	// 	.flir_mux_type = FLR_DVOMUX_TYPE_MONO8,
+	// 	.name = "RAW8",
+	// },
+	// {
+ // 		.code = MEDIA_BUS_FMT_Y16_1X16,
+	// // 	.code = MEDIA_BUS_FMT_Y14_1X14,
+	// 	.flir_type = FLR_DVO_TYPE_TLINEAR,
+	// 	.flir_mux_type = FLR_DVOMUX_TYPE_MONO16,
+	// 	.name = "RAW14",
+	// },
 	{
 		.code = MEDIA_BUS_FMT_UYVY8_1X16,
 		.flir_type = FLR_DVO_TYPE_COLOR,
 		.flir_mux_type = FLR_DVOMUX_TYPE_COLOR,
-		.bpp = 16,
 		.name = "UYVY",
 	},
 };
@@ -99,9 +97,7 @@ static const struct flir_boson_framesize flir_boson_framesizes[] = {
 #define FLIR_BOSON_NUM_FORMATS ARRAY_SIZE(flir_boson_formats)
 #define FLIR_BOSON_NUM_FRAMESIZES ARRAY_SIZE(flir_boson_framesizes)
 
-static const struct flir_boson_format *
-flir_boson_find_format(u32 code)
-{
+static const struct flir_boson_format * flir_boson_find_format(u32 code) {
 	int i;
 
 	for (i = 0; i < FLIR_BOSON_NUM_FORMATS; i++) {
@@ -233,39 +229,30 @@ unlock:
 // }
 
 /* V4L2 Subdev Pad Operations */
-static int flir_boson_enum_mbus_code(struct v4l2_subdev *sd,
-				     struct v4l2_subdev_state *sd_state,
-				     struct v4l2_subdev_mbus_code_enum *code)
-{
+static int flir_boson_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_state *sd_state, struct v4l2_subdev_mbus_code_enum *code) {
 	if (code->pad != 0 || code->index >= FLIR_BOSON_NUM_FORMATS)
 		return -EINVAL;
 
 	dev_dbg(to_flir_boson_dev(sd)->dev, "ENUM_MBUS_CODE: index=%u", code->index);
-
 	code->code = flir_boson_formats[code->index].code;
 	return 0;
 }
 
-static int flir_boson_enum_frame_size(struct v4l2_subdev *sd,
-				      struct v4l2_subdev_state *sd_state,
-				      struct v4l2_subdev_frame_size_enum *fse)
-{
+static int flir_boson_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_state *sd_state, struct v4l2_subdev_frame_size_enum *fse) {
 	if (fse->pad != 0 || fse->index >= FLIR_BOSON_NUM_FRAMESIZES)
 		return -EINVAL;
 
 	if (!flir_boson_find_format(fse->code))
 		return -EINVAL;
 
+	dev_dbg(to_flir_boson_dev(sd)->dev, "ENUM_FRAME_SIZE: index=%u", fse->index);
 	fse->min_width = fse->max_width = flir_boson_framesizes[fse->index].width;
 	fse->min_height = fse->max_height = flir_boson_framesizes[fse->index].height;
 
 	return 0;
 }
 
-static int flir_boson_enum_frame_interval(struct v4l2_subdev *sd,
-					  struct v4l2_subdev_state *sd_state,
-					  struct v4l2_subdev_frame_interval_enum *fie)
-{
+static int flir_boson_enum_frame_interval(struct v4l2_subdev *sd, struct v4l2_subdev_state *sd_state, struct v4l2_subdev_frame_interval_enum *fie) {
 	const struct flir_boson_framesize *framesize;
 
 	if (fie->pad != 0 || fie->index > 0)
@@ -278,16 +265,14 @@ static int flir_boson_enum_frame_interval(struct v4l2_subdev *sd,
 	if (!framesize)
 		return -EINVAL;
 
+	dev_dbg(to_flir_boson_dev(sd)->dev, "ENUM_FRAME_INTERVAL: width=%u, height=%u", fie->width, fie->height);
 	fie->interval.numerator = 1;
 	fie->interval.denominator = framesize->max_fps;
 
 	return 0;
 }
 
-static int flir_boson_get_fmt(struct v4l2_subdev *sd,
-			      struct v4l2_subdev_state *sd_state,
-			      struct v4l2_subdev_format *format)
-{
+static int flir_boson_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *sd_state, struct v4l2_subdev_format *format) {
 	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
 
 	if (format->pad != 0)
@@ -301,8 +286,7 @@ static int flir_boson_get_fmt(struct v4l2_subdev *sd,
 	return 0;
 }
 
-static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *sd_state, struct v4l2_subdev_format *format)
-{
+static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *sd_state, struct v4l2_subdev_format *format) {
 	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
 	const struct flir_boson_format *new_format;
 	const struct flir_boson_framesize *new_framesize;
@@ -509,13 +493,17 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	dev_dbg(dev, "PROBE: Device structure initialized");
 
 	/* Initialize default format */
-	sensor->current_format = &flir_boson_formats[2];
+	sensor->current_format = &flir_boson_formats[0];
 	sensor->current_framesize = &flir_boson_framesizes[1]; /* 640x512 */
 	sensor->fmt.code = sensor->current_format->code;
 	sensor->fmt.width = sensor->current_framesize->width;
 	sensor->fmt.height = sensor->current_framesize->height;
 	sensor->fmt.field = V4L2_FIELD_NONE;
-	sensor->fmt.colorspace = V4L2_COLORSPACE_RAW;
+	sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
+	sensor->fmt.ycbcr_enc = V4L2_MAP_YCBCR_ENC_DEFAULT(sensor->fmt.colorspace);
+	sensor->fmt.quantization = V4L2_QUANTIZATION_FULL_RANGE;
+	sensor->fmt.xfer_func = V4L2_MAP_XFER_FUNC_DEFAULT(sensor->fmt.colorspace);
+	sensor->fmt.colorspace = V4L2_COLORSPACE_SRGB;
 	dev_dbg(dev, "PROBE: Default format initialized - %ux%u, code=0x%08x",
 		sensor->fmt.width, sensor->fmt.height, sensor->fmt.code);
 

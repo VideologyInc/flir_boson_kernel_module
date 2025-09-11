@@ -28,8 +28,9 @@ classifiers = [
 Homepage = "https://oem.flir.com/support/support-center/software/"
 
 [project.scripts]
+flir-color-lut = "BosonSDK.flir_color_lut:main"
 flir-get-info = "BosonSDK.flir_get_info:main"
-flir-mipi = "BosonSDK.flir_mipi:main"
+# flir-mipi = "BosonSDK.flir_mipi:main"
 
 [tool.setuptools]
 packages = ["BosonSDK", "BosonSDK.ClientFiles_Python", "BosonSDK.CommunicationFiles"]

@@ -1,0 +1,36 @@
+# BasedOnStyle: LLVM
+# IndentWidth: 4
+# ColumnLimit: 140
+
+# AlignConsecutiveAssignments: AcrossEmptyLines
+# AlignConsecutiveBitFields: AcrossEmptyLines
+# AlignConsecutiveDeclarations: AcrossEmptyLines
+# AlignConsecutiveShortCaseStatements: AcrossEmptyLines
+# AlignTrailingComments: Always
+# AllowAllParametersOfDeclarationOnNextLine: false
+# AllowShortBlocksOnASingleLine: true
+
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: Never
+ColumnLimit: 160
+
+Language: Cpp
+AccessModifierOffset: -4
+ConstructorInitializerAllOnOneLineOrOnePerLine : false
+BreakConstructorInitializers: BeforeComma
+DerivePointerAlignment: false
+IndentCaseLabels: false
+NamespaceIndentation: All
+AlignConsecutiveAssignments: true
+AlignConsecutiveDeclarations: true
+AlignEscapedNewlines: Left
+AlignTrailingComments: true
+AlignOperands: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortLoopsOnASingleLine: true
+AllowShortBlocksOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: true
+ReflowComments: false
+AllowAllParametersOfDeclarationOnNextLine: true

@@ -4,7 +4,7 @@
 flir-boson-objs := flir-boson-core.o flir-boson-fslp.o
 obj-m += flir-boson.o
 
-EXTRA_CFLAGS += -DDEBUG
+# EXTRA_CFLAGS += -DDEBUG
 
 # In-tree kernel build support
 obj-$(CONFIG_VIDEO_FLIR_BOSON) += flir-boson.o
@@ -25,4 +25,10 @@ clean:
 
 all: default
 
-.PHONY: default hardware hw modules_install clean all
+install: all
+	-rmmod -f flir_boson
+	-rmmod -f imx8_media_dev
+	insmod flir-boson.ko
+	modprobe imx8_media_dev
+
+.PHONY: default hardware hw modules_install clean all install

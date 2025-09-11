@@ -40,7 +40,6 @@ struct flir_boson_format {
 	u32 code;
 	u32 flir_type;
 	u32 flir_mux_type;
-	u8 bpp;
 	const char *name;
 };
 

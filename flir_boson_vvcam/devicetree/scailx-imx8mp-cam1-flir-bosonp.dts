@@ -1,0 +1,74 @@
+// SPDX-License-Identifier: (GPL-2.0 OR MIT)
+/*
+ * Copyright (C) 2024 VideologyInc
+ *
+ */
+
+/dts-v1/;
+/plugin/;
+
+#include "imx8mp-pinfunc.h"
+#include <dt-bindings/clock/imx8mp-clock.h>
+#include <dt-bindings/gpio/gpio.h>
+
+&{/chosen} {
+	overlays {
+		cam1-flir-boson-mipi = __TIMESTAMP__;
+	};
+};
+
+&csi1_i2c {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	flir_boson_1: flir_boson_1@6a {
+		compatible = "flir,boson-vvcam";
+		reg = <0x6a>;
+		csi_id = <1>;
+		reset-gpios = <&gpio_expander 1 GPIO_ACTIVE_LOW>;
+		status = "okay";
+
+		port {
+			mipi_1_ep: endpoint {
+				remote-endpoint = <&mipi_csi1_ep>;
+				max-pixel-frequency = /bits/ 64 <245000000>;
+				data-lanes = <2>;
+			};
+		};
+	};
+};
+
+&mipi_csi_1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	clock-frequency = <245000000>;
+	status = "okay";
+
+	port@1 {
+		reg = <1>;
+		mipi_csi1_ep: endpoint {
+			remote-endpoint = <&mipi_1_ep>;
+			max-pixel-frequency = /bits/ 64 <245000000>;
+			data-lanes = <1 2>;
+			csis-hs-settle = <13>;
+			csis-clk-settle = <2>;
+			csis-wclk;
+		};
+	};
+};
+
+&cameradev {
+	status = "okay";
+};
+
+&isi_1 {
+	status = "disabled";
+};
+
+&isp_1 {
+	status = "okay";
+};
+
+&dewarp {
+	status = "okay";
+};

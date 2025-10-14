@@ -189,7 +189,7 @@ static int boson_set_sensor_mode(struct flir_boson_dev *sensor, void *arg) {
 static int boson_get_clk(void *arg) {
     struct vvcam_clk_s clk = {
         .sensor_mclk       = 24000000,
-        .csi_max_pixel_clk = 24000000 * 8,
+        .csi_max_pixel_clk = 245000000,
     };
 
     return copy_to_user(arg, &clk, sizeof(clk)) ? -EFAULT : 0;

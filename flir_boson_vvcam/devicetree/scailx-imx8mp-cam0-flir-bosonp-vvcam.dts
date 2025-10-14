@@ -22,7 +22,7 @@
 	#size-cells = <0>;
 
 	flir_boson_0: flirboson_0@6a {
-		compatible = "flir,boson-mipi";
+		compatible = "flir,boson-vvcam";
 		reg = <0x6a>;
 		csi_id = <0>;
 		reset-gpios = <&gpio_expander 9 GPIO_ACTIVE_LOW>;

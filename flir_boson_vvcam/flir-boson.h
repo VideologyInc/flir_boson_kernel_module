@@ -22,7 +22,6 @@
 #include "ReturnCodes.h"
 /* Forward declarations to avoid circular includes */
 
-#define FLIR_BOSON_NAME "flir-boson"
 #define FLIR_BOSON_I2C_ADDR 0x6A
 
 /* FSLP Protocol Constants */

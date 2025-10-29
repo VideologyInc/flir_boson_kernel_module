@@ -42,7 +42,7 @@ class pyClient(Packager):
                 fslpType = FSLP_TYPE_E.FSLP_DLL_SERIAL
             else:
                 fslpType = FSLP_TYPE_E.FSLP_PY_SERIAL
-                
+
 
             fslp = CommonFslp.getFslp(manualport, manualbaud, fslpType, importPath, **kwargs)
             fslp.port.open()
@@ -51,7 +51,7 @@ class pyClient(Packager):
         super().__init__(fslp)
         self.ex = ex
         self._api_names = []
-        
+
         self._commClosed = False
         self.fslp = fslp
 
@@ -60,19 +60,19 @@ class pyClient(Packager):
                 my_api = getattr(cam_instance,results_list[0])
                 my_api(...)
             Inputs: search_str = substring to search for (3 or more characters)
-                    case_sensitive = boolean 
+                    case_sensitive = boolean
             Outputs: results_list, a list of all API names containing substring.
         '''
         if len(search_str) < 3:
             raise ValueError("Search string must contain at least 3 characters")
-        
+
         results_dict = {}
-        
+
         if case_sensitive:
             api_names = [api for api in pyClient.__dict__.keys() if search_str in api and "FLR_" not in api]
         else:
             api_names = [api for api in pyClient.__dict__.keys() if search_str.lower() in api.lower() and "FLR_" not in api]
-        
+
         if len(api_names):
             api_names.sort()
             self._api_names = api_names
@@ -98,7 +98,7 @@ class pyClient(Packager):
                 raise ValueError("Must run successful LookupAPI call before using index value for RunAPI")
         except ValueError:
             pass
-        
+
         try:
             return getattr(self,api_selector)(*args,**kwargs)
         except AttributeError:
@@ -119,7 +119,7 @@ class pyClient(Packager):
             self._commClosed = True
         else:
             print("Serial port instance already freed.")
-            
+
     def closeComm(self):
         if self._commClosed is False:
             print("Closing com port.")
@@ -127,7 +127,7 @@ class pyClient(Packager):
             self._commClosed = True
         else:
             print("Com port already closed.")
-    
+
     def reopenComm(self, manualport=None,manualbaud=None):
         if self._commClosed is True:
             print("Re-opening com port.")
@@ -147,11 +147,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_TLinear_SetControl(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetControl()
 
@@ -163,11 +163,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_TLinear_GetControl()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetControl()
 
@@ -182,11 +182,11 @@ class pyClient(Packager):
             Output_02 b[<class 'float'>] 16 <<FLOAT*16>>
         '''
         returnCode, a, b = self.CLIENT_pkg_TLinear_GetLUT(mode, offset)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, a, b)
     # End of GetLUT()
 
@@ -198,11 +198,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_TLinear_RefreshLUT(mode)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of RefreshLUT()
 
@@ -214,11 +214,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetPercentPerBin(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetPercentPerBin()
 
@@ -230,11 +230,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetPercentPerBin()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetPercentPerBin()
 
@@ -246,11 +246,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetLinearPercent(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetLinearPercent()
 
@@ -262,11 +262,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetLinearPercent()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetLinearPercent()
 
@@ -278,11 +278,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetOutlierCut(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOutlierCut()
 
@@ -294,11 +294,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetOutlierCut()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetOutlierCut()
 
@@ -310,11 +310,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetDrOut()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDrOut()
 
@@ -326,11 +326,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetMaxGain(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMaxGain()
 
@@ -342,11 +342,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetMaxGain()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMaxGain()
 
@@ -358,11 +358,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_Setdf(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Setdf()
 
@@ -374,11 +374,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_Getdf()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of Getdf()
 
@@ -390,11 +390,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetGamma(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGamma()
 
@@ -406,11 +406,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetGamma()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGamma()
 
@@ -422,11 +422,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetFirstBin()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFirstBin()
 
@@ -438,11 +438,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetLastBin()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetLastBin()
 
@@ -454,11 +454,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetDetailHeadroom(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDetailHeadroom()
 
@@ -470,11 +470,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetDetailHeadroom()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDetailHeadroom()
 
@@ -486,11 +486,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_Setd2br(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Setd2br()
 
@@ -502,11 +502,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_Getd2br()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of Getd2br()
 
@@ -518,11 +518,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetSigmaR(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSigmaR()
 
@@ -534,11 +534,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetSigmaR()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSigmaR()
 
@@ -550,11 +550,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetUseEntropy(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetUseEntropy()
 
@@ -566,11 +566,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetUseEntropy()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetUseEntropy()
 
@@ -582,11 +582,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetROI(roi)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetROI()
 
@@ -598,11 +598,11 @@ class pyClient(Packager):
             Output_01 roi FLR_ROI_T <<FLR_ROI_T>>
         '''
         returnCode, roi = self.CLIENT_pkg_agc_GetROI()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, roi)
     # End of GetROI()
 
@@ -614,11 +614,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetMaxGainApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMaxGainApplied()
 
@@ -630,11 +630,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetSigmaRApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSigmaRApplied()
 
@@ -646,11 +646,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetOutlierCutBalance(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOutlierCutBalance()
 
@@ -662,11 +662,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetOutlierCutBalance()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetOutlierCutBalance()
 
@@ -679,11 +679,11 @@ class pyClient(Packager):
             Output_02 percentLow <class 'float'> <<FLOAT>>
         '''
         returnCode, percentHigh, percentLow = self.CLIENT_pkg_agc_GetOutlierCutApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, percentHigh, percentLow)
     # End of GetOutlierCutApplied()
 
@@ -695,11 +695,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetDetailHeadroomBalance(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDetailHeadroomBalance()
 
@@ -711,11 +711,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetDetailHeadroomBalance()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDetailHeadroomBalance()
 
@@ -728,11 +728,11 @@ class pyClient(Packager):
             Output_02 countsLow <class 'float'> <<FLOAT>>
         '''
         returnCode, countsHigh, countsLow = self.CLIENT_pkg_agc_GetDetailHeadroomApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, countsHigh, countsLow)
     # End of GetDetailHeadroomApplied()
 
@@ -745,11 +745,11 @@ class pyClient(Packager):
             Output_02 tf_thresholdMax <class 'int'> <<UINT_16>>
         '''
         returnCode, tf_thresholdMin, tf_thresholdMax = self.CLIENT_pkg_agc_GetTfThresholds()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, tf_thresholdMin, tf_thresholdMax)
     # End of GetTfThresholds()
 
@@ -762,11 +762,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetTfThresholds(tf_thresholdMin, tf_thresholdMax)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTfThresholds()
 
@@ -778,11 +778,11 @@ class pyClient(Packager):
             Output_01 mode FLR_AGC_MODE_E <<FLR_AGC_MODE_E>>
         '''
         returnCode, mode = self.CLIENT_pkg_agc_GetMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, mode)
     # End of GetMode()
 
@@ -794,11 +794,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetMode(mode)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMode()
 
@@ -812,11 +812,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetHighTempAlarmValues(lowGain, highGain, pixPopulation)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetHighTempAlarmValues()
 
@@ -828,11 +828,11 @@ class pyClient(Packager):
             Output_01 contrast <class 'int'> <<INT_32>>
         '''
         returnCode, contrast = self.CLIENT_pkg_agc_GetContrast()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, contrast)
     # End of GetContrast()
 
@@ -844,11 +844,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetContrast(contrast)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetContrast()
 
@@ -860,11 +860,11 @@ class pyClient(Packager):
             Output_01 brightnessBias <class 'int'> <<INT_32>>
         '''
         returnCode, brightnessBias = self.CLIENT_pkg_agc_GetBrightnessBias()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, brightnessBias)
     # End of GetBrightnessBias()
 
@@ -876,11 +876,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetBrightnessBias(brightnessBias)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetBrightnessBias()
 
@@ -892,11 +892,11 @@ class pyClient(Packager):
             Output_01 brightness <class 'int'> <<INT_32>>
         '''
         returnCode, brightness = self.CLIENT_pkg_agc_GetBrightness()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, brightness)
     # End of GetBrightness()
 
@@ -908,11 +908,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetBrightness(brightness)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetBrightness()
 
@@ -924,11 +924,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetMaxGainForLowGain(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMaxGainForLowGain()
 
@@ -940,11 +940,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetMaxGainForLowGain()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMaxGainForLowGain()
 
@@ -956,11 +956,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetRadius(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetRadius()
 
@@ -972,11 +972,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetRadius()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetRadius()
 
@@ -988,11 +988,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetGmax(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGmax()
 
@@ -1004,11 +1004,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetGmax()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGmax()
 
@@ -1020,11 +1020,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_agc_SetGmin(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGmin()
 
@@ -1036,11 +1036,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_agc_GetGmin()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGmin()
 
@@ -1052,11 +1052,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetCameraSN()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetCameraSN()
 
@@ -1068,11 +1068,11 @@ class pyClient(Packager):
             Output_01 data FLR_BOSON_PARTNUMBER_T <<FLR_BOSON_PARTNUMBER_T>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetCameraPN()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetCameraPN()
 
@@ -1084,11 +1084,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetSensorSN()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSensorSN()
 
@@ -1099,11 +1099,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_RunFFC()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of RunFFC()
 
@@ -1115,11 +1115,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetFFCTempThreshold(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFFCTempThreshold()
 
@@ -1131,11 +1131,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetFFCTempThreshold()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFFCTempThreshold()
 
@@ -1147,11 +1147,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetFFCFrameThreshold(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFFCFrameThreshold()
 
@@ -1163,11 +1163,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetFFCFrameThreshold()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFFCFrameThreshold()
 
@@ -1179,11 +1179,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<INT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetFFCInProgress()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFFCInProgress()
 
@@ -1194,11 +1194,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_Reboot()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Reboot()
 
@@ -1210,11 +1210,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetFFCMode(ffcMode)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFFCMode()
 
@@ -1226,11 +1226,11 @@ class pyClient(Packager):
             Output_01 ffcMode FLR_BOSON_FFCMODE_E <<FLR_BOSON_FFCMODE_E>>
         '''
         returnCode, ffcMode = self.CLIENT_pkg_boson_GetFFCMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, ffcMode)
     # End of GetFFCMode()
 
@@ -1242,11 +1242,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetGainMode(gainMode)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGainMode()
 
@@ -1258,11 +1258,11 @@ class pyClient(Packager):
             Output_01 gainMode FLR_BOSON_GAINMODE_E <<FLR_BOSON_GAINMODE_E>>
         '''
         returnCode, gainMode = self.CLIENT_pkg_boson_GetGainMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, gainMode)
     # End of GetGainMode()
 
@@ -1273,11 +1273,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_WriteDynamicHeaderToFlash()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of WriteDynamicHeaderToFlash()
 
@@ -1288,11 +1288,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_ReadDynamicHeaderFromFlash()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of ReadDynamicHeaderFromFlash()
 
@@ -1303,11 +1303,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_RestoreFactoryDefaultsFromFlash()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of RestoreFactoryDefaultsFromFlash()
 
@@ -1318,11 +1318,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_RestoreFactoryBadPixelsFromFlash()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of RestoreFactoryBadPixelsFromFlash()
 
@@ -1333,11 +1333,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_WriteBadPixelsToFlash()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of WriteBadPixelsToFlash()
 
@@ -1351,11 +1351,11 @@ class pyClient(Packager):
             Output_03 patch <class 'int'> <<UINT_32>>
         '''
         returnCode, major, minor, patch = self.CLIENT_pkg_boson_GetSoftwareRev()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None)
-        
+
         return ( returnCode, major, minor, patch)
     # End of GetSoftwareRev()
 
@@ -1368,11 +1368,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetBadPixelLocation(row, col)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetBadPixelLocation()
 
@@ -1384,11 +1384,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<INT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_lookupFPATempDegCx10()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of lookupFPATempDegCx10()
 
@@ -1400,11 +1400,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_lookupFPATempDegKx10()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of lookupFPATempDegKx10()
 
@@ -1415,11 +1415,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_WriteLensNvFfcToFlash()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of WriteLensNvFfcToFlash()
 
@@ -1430,11 +1430,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_WriteLensGainToFlash()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of WriteLensGainToFlash()
 
@@ -1446,11 +1446,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetLensNumber(lensNumber)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetLensNumber()
 
@@ -1462,11 +1462,11 @@ class pyClient(Packager):
             Output_01 lensNumber <class 'int'> <<UINT_32>>
         '''
         returnCode, lensNumber = self.CLIENT_pkg_boson_GetLensNumber()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, lensNumber)
     # End of GetLensNumber()
 
@@ -1478,11 +1478,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetTableNumber(tableNumber)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTableNumber()
 
@@ -1494,11 +1494,11 @@ class pyClient(Packager):
             Output_01 tableNumber <class 'int'> <<UINT_32>>
         '''
         returnCode, tableNumber = self.CLIENT_pkg_boson_GetTableNumber()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, tableNumber)
     # End of GetTableNumber()
 
@@ -1510,11 +1510,11 @@ class pyClient(Packager):
             Output_01 sensorPN FLR_BOSON_SENSOR_PARTNUMBER_T <<FLR_BOSON_SENSOR_PARTNUMBER_T>>
         '''
         returnCode, sensorPN = self.CLIENT_pkg_boson_GetSensorPN()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, sensorPN)
     # End of GetSensorPN()
 
@@ -1526,11 +1526,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetGainSwitchParams(parm_struct)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGainSwitchParams()
 
@@ -1542,11 +1542,11 @@ class pyClient(Packager):
             Output_01 parm_struct FLR_BOSON_GAIN_SWITCH_PARAMS_T <<FLR_BOSON_GAIN_SWITCH_PARAMS_T>>
         '''
         returnCode, parm_struct = self.CLIENT_pkg_boson_GetGainSwitchParams()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, parm_struct)
     # End of GetGainSwitchParams()
 
@@ -1558,11 +1558,11 @@ class pyClient(Packager):
             Output_01 switchToHighGainFlag <class 'int'> <<UCHAR>>
         '''
         returnCode, switchToHighGainFlag = self.CLIENT_pkg_boson_GetSwitchToHighGainFlag()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, switchToHighGainFlag)
     # End of GetSwitchToHighGainFlag()
 
@@ -1574,11 +1574,11 @@ class pyClient(Packager):
             Output_01 switchToLowGainFlag <class 'int'> <<UCHAR>>
         '''
         returnCode, switchToLowGainFlag = self.CLIENT_pkg_boson_GetSwitchToLowGainFlag()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, switchToLowGainFlag)
     # End of GetSwitchToLowGainFlag()
 
@@ -1590,11 +1590,11 @@ class pyClient(Packager):
             Output_01 cLowToHighPercent <class 'int'> <<UINT_32>>
         '''
         returnCode, cLowToHighPercent = self.CLIENT_pkg_boson_GetCLowToHighPercent()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, cLowToHighPercent)
     # End of GetCLowToHighPercent()
 
@@ -1606,11 +1606,11 @@ class pyClient(Packager):
             Output_01 maxNUCTables <class 'int'> <<UINT_32>>
         '''
         returnCode, maxNUCTables = self.CLIENT_pkg_boson_GetMaxNUCTables()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, maxNUCTables)
     # End of GetMaxNUCTables()
 
@@ -1622,11 +1622,11 @@ class pyClient(Packager):
             Output_01 maxLensTables <class 'int'> <<UINT_32>>
         '''
         returnCode, maxLensTables = self.CLIENT_pkg_boson_GetMaxLensTables()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, maxLensTables)
     # End of GetMaxLensTables()
 
@@ -1638,11 +1638,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetFfcWaitCloseFrames()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFfcWaitCloseFrames()
 
@@ -1654,11 +1654,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetFfcWaitCloseFrames(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFfcWaitCloseFrames()
 
@@ -1669,11 +1669,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_CheckForTableSwitch()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CheckForTableSwitch()
 
@@ -1685,11 +1685,11 @@ class pyClient(Packager):
             Output_01 desiredTableNumber <class 'int'> <<UINT_32>>
         '''
         returnCode, desiredTableNumber = self.CLIENT_pkg_boson_GetDesiredTableNumber()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, desiredTableNumber)
     # End of GetDesiredTableNumber()
 
@@ -1701,11 +1701,11 @@ class pyClient(Packager):
             Output_01 ffcStatus FLR_BOSON_FFCSTATUS_E <<FLR_BOSON_FFCSTATUS_E>>
         '''
         returnCode, ffcStatus = self.CLIENT_pkg_boson_GetFfcStatus()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, ffcStatus)
     # End of GetFfcStatus()
 
@@ -1717,11 +1717,11 @@ class pyClient(Packager):
             Output_01 ffcDesired <class 'int'> <<UINT_32>>
         '''
         returnCode, ffcDesired = self.CLIENT_pkg_boson_GetFfcDesired()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, ffcDesired)
     # End of GetFfcDesired()
 
@@ -1735,11 +1735,11 @@ class pyClient(Packager):
             Output_03 patch <class 'int'> <<UINT_32>>
         '''
         returnCode, major, minor, patch = self.CLIENT_pkg_boson_GetSwRevInHeader()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None)
-        
+
         return ( returnCode, major, minor, patch)
     # End of GetSwRevInHeader()
 
@@ -1751,11 +1751,11 @@ class pyClient(Packager):
             Output_01 frameCount <class 'int'> <<UINT_32>>
         '''
         returnCode, frameCount = self.CLIENT_pkg_boson_GetLastFFCFrameCount()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, frameCount)
     # End of GetLastFFCFrameCount()
 
@@ -1767,11 +1767,11 @@ class pyClient(Packager):
             Output_01 temp <class 'int'> <<UINT_16>>
         '''
         returnCode, temp = self.CLIENT_pkg_boson_GetLastFFCTempDegKx10()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, temp)
     # End of GetLastFFCTempDegKx10()
 
@@ -1783,11 +1783,11 @@ class pyClient(Packager):
             Output_01 tableSwitchDesired <class 'int'> <<UINT_16>>
         '''
         returnCode, tableSwitchDesired = self.CLIENT_pkg_boson_GetTableSwitchDesired()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, tableSwitchDesired)
     # End of GetTableSwitchDesired()
 
@@ -1799,11 +1799,11 @@ class pyClient(Packager):
             Output_01 temperatureInC <class 'float'> <<FLOAT>>
         '''
         returnCode, temperatureInC = self.CLIENT_pkg_boson_GetOverTempThreshold()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, temperatureInC)
     # End of GetOverTempThreshold()
 
@@ -1815,11 +1815,11 @@ class pyClient(Packager):
             Output_01 lowPowerMode <class 'int'> <<UINT_16>>
         '''
         returnCode, lowPowerMode = self.CLIENT_pkg_boson_GetLowPowerMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, lowPowerMode)
     # End of GetLowPowerMode()
 
@@ -1831,11 +1831,11 @@ class pyClient(Packager):
             Output_01 overTempEventOccurred <class 'int'> <<UINT_16>>
         '''
         returnCode, overTempEventOccurred = self.CLIENT_pkg_boson_GetOverTempEventOccurred()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, overTempEventOccurred)
     # End of GetOverTempEventOccurred()
 
@@ -1847,11 +1847,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetPermitThermalShutdownOverride(permitThermalShutdownOverride)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetPermitThermalShutdownOverride()
 
@@ -1863,11 +1863,11 @@ class pyClient(Packager):
             Output_01 permitThermalShutdownOverride FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, permitThermalShutdownOverride = self.CLIENT_pkg_boson_GetPermitThermalShutdownOverride()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, permitThermalShutdownOverride)
     # End of GetPermitThermalShutdownOverride()
 
@@ -1879,11 +1879,11 @@ class pyClient(Packager):
             Output_01 myriadTemp <class 'float'> <<FLOAT>>
         '''
         returnCode, myriadTemp = self.CLIENT_pkg_boson_GetMyriadTemp()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, myriadTemp)
     # End of GetMyriadTemp()
 
@@ -1895,11 +1895,11 @@ class pyClient(Packager):
             Output_01 nvFFCNucTableNumberLens0 <class 'int'> <<INT_32>>
         '''
         returnCode, nvFFCNucTableNumberLens0 = self.CLIENT_pkg_boson_GetNvFFCNucTableNumberLens0()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, nvFFCNucTableNumberLens0)
     # End of GetNvFFCNucTableNumberLens0()
 
@@ -1911,11 +1911,11 @@ class pyClient(Packager):
             Output_01 nvFFCNucTableNumberLens1 <class 'int'> <<INT_32>>
         '''
         returnCode, nvFFCNucTableNumberLens1 = self.CLIENT_pkg_boson_GetNvFFCNucTableNumberLens1()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, nvFFCNucTableNumberLens1)
     # End of GetNvFFCNucTableNumberLens1()
 
@@ -1927,11 +1927,11 @@ class pyClient(Packager):
             Output_01 nvFFCFPATempDegKx10Lens0 <class 'int'> <<UINT_16>>
         '''
         returnCode, nvFFCFPATempDegKx10Lens0 = self.CLIENT_pkg_boson_GetNvFFCFPATempDegKx10Lens0()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, nvFFCFPATempDegKx10Lens0)
     # End of GetNvFFCFPATempDegKx10Lens0()
 
@@ -1943,11 +1943,11 @@ class pyClient(Packager):
             Output_01 nvFFCFPATempDegKx10Lens1 <class 'int'> <<UINT_16>>
         '''
         returnCode, nvFFCFPATempDegKx10Lens1 = self.CLIENT_pkg_boson_GetNvFFCFPATempDegKx10Lens1()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, nvFFCFPATempDegKx10Lens1)
     # End of GetNvFFCFPATempDegKx10Lens1()
 
@@ -1959,11 +1959,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetFFCWarnTimeInSecx10(ffcWarnTime)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFFCWarnTimeInSecx10()
 
@@ -1975,11 +1975,11 @@ class pyClient(Packager):
             Output_01 ffcWarnTime <class 'int'> <<UINT_16>>
         '''
         returnCode, ffcWarnTime = self.CLIENT_pkg_boson_GetFFCWarnTimeInSecx10()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, ffcWarnTime)
     # End of GetFFCWarnTimeInSecx10()
 
@@ -1991,11 +1991,11 @@ class pyClient(Packager):
             Output_01 overTempEventCounter <class 'int'> <<UINT_32>>
         '''
         returnCode, overTempEventCounter = self.CLIENT_pkg_boson_GetOverTempEventCounter()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, overTempEventCounter)
     # End of GetOverTempEventCounter()
 
@@ -2007,11 +2007,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetOverTempTimerInSec(overTempTimerInSec)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOverTempTimerInSec()
 
@@ -2023,11 +2023,11 @@ class pyClient(Packager):
             Output_01 overTempTimerInSec <class 'int'> <<UINT_16>>
         '''
         returnCode, overTempTimerInSec = self.CLIENT_pkg_boson_GetOverTempTimerInSec()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, overTempTimerInSec)
     # End of GetOverTempTimerInSec()
 
@@ -2038,11 +2038,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_UnloadCurrentLensCorrections()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of UnloadCurrentLensCorrections()
 
@@ -2054,11 +2054,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetTimeForQuickFFCsInSecs(timeForQuickFFCsInSecs)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTimeForQuickFFCsInSecs()
 
@@ -2070,11 +2070,11 @@ class pyClient(Packager):
             Output_01 timeForQuickFFCsInSecs <class 'int'> <<UINT_32>>
         '''
         returnCode, timeForQuickFFCsInSecs = self.CLIENT_pkg_boson_GetTimeForQuickFFCsInSecs()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, timeForQuickFFCsInSecs)
     # End of GetTimeForQuickFFCsInSecs()
 
@@ -2085,11 +2085,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_ReloadCurrentLensCorrections()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of ReloadCurrentLensCorrections()
 
@@ -2104,11 +2104,11 @@ class pyClient(Packager):
             Output_04 Timestamp4 <class 'float'> <<FLOAT>>
         '''
         returnCode, FirstLight, StartInit, BosonExecDone, Timestamp4 = self.CLIENT_pkg_boson_GetBootTimestamps()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None, None)
-        
+
         return ( returnCode, FirstLight, StartInit, BosonExecDone, Timestamp4)
     # End of GetBootTimestamps()
 
@@ -2120,11 +2120,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetExtSyncMode(mode)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetExtSyncMode()
 
@@ -2136,11 +2136,11 @@ class pyClient(Packager):
             Output_01 mode FLR_BOSON_EXT_SYNC_MODE_E <<FLR_BOSON_EXT_SYNC_MODE_E>>
         '''
         returnCode, mode = self.CLIENT_pkg_boson_GetExtSyncMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, mode)
     # End of GetExtSyncMode()
 
@@ -2153,11 +2153,11 @@ class pyClient(Packager):
             Output_02 cmdID <class 'int'> <<UINT_32>>
         '''
         returnCode, sequenceNum, cmdID = self.CLIENT_pkg_boson_GetLastCommand()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, sequenceNum, cmdID)
     # End of GetLastCommand()
 
@@ -2169,11 +2169,11 @@ class pyClient(Packager):
             Output_01 version <class 'int'> <<UINT_32>>
         '''
         returnCode, version = self.CLIENT_pkg_boson_GetSensorHostCalVersion()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, version)
     # End of GetSensorHostCalVersion()
 
@@ -2185,11 +2185,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetDesiredStartupTableNumber(table)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDesiredStartupTableNumber()
 
@@ -2201,11 +2201,11 @@ class pyClient(Packager):
             Output_01 table <class 'int'> <<INT_32>>
         '''
         returnCode, table = self.CLIENT_pkg_boson_GetDesiredStartupTableNumber()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, table)
     # End of GetDesiredStartupTableNumber()
 
@@ -2217,11 +2217,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetNvFFCMeanValueLens0(meanValue)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetNvFFCMeanValueLens0()
 
@@ -2233,11 +2233,11 @@ class pyClient(Packager):
             Output_01 meanValue <class 'float'> <<FLOAT>>
         '''
         returnCode, meanValue = self.CLIENT_pkg_boson_GetNvFFCMeanValueLens0()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, meanValue)
     # End of GetNvFFCMeanValueLens0()
 
@@ -2249,11 +2249,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetNvFFCMeanValueLens1(meanValue)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetNvFFCMeanValueLens1()
 
@@ -2265,11 +2265,11 @@ class pyClient(Packager):
             Output_01 meanValue <class 'float'> <<FLOAT>>
         '''
         returnCode, meanValue = self.CLIENT_pkg_boson_GetNvFFCMeanValueLens1()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, meanValue)
     # End of GetNvFFCMeanValueLens1()
 
@@ -2281,11 +2281,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetInvertImage(invertImage)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetInvertImage()
 
@@ -2297,11 +2297,11 @@ class pyClient(Packager):
             Output_01 invertImage FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, invertImage = self.CLIENT_pkg_boson_GetInvertImage()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, invertImage)
     # End of GetInvertImage()
 
@@ -2313,11 +2313,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetRevertImage(revertImage)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetRevertImage()
 
@@ -2329,11 +2329,11 @@ class pyClient(Packager):
             Output_01 revertImage FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, revertImage = self.CLIENT_pkg_boson_GetRevertImage()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, revertImage)
     # End of GetRevertImage()
 
@@ -2346,11 +2346,11 @@ class pyClient(Packager):
             Output_01 timeStamp <class 'float'> <<FLOAT>>
         '''
         returnCode, timeStamp = self.CLIENT_pkg_boson_GetTimeStamp(timeStampType)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, timeStamp)
     # End of GetTimeStamp()
 
@@ -2362,11 +2362,11 @@ class pyClient(Packager):
             Output_01 ispFrameCount <class 'int'> <<UINT_32>>
         '''
         returnCode, ispFrameCount = self.CLIENT_pkg_boson_GetISPFrameCount()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, ispFrameCount)
     # End of GetISPFrameCount()
 
@@ -2377,11 +2377,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_WriteUserBadPixelsToAllTables()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of WriteUserBadPixelsToAllTables()
 
@@ -2392,11 +2392,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_WriteFactoryBadPixelsToAllTables()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of WriteFactoryBadPixelsToAllTables()
 
@@ -2408,11 +2408,11 @@ class pyClient(Packager):
             Output_01 status FLR_BOSON_TEMP_DIODE_STATUS_E <<FLR_BOSON_TEMP_DIODE_STATUS_E>>
         '''
         returnCode, status = self.CLIENT_pkg_boson_GetTempDiodeStatus()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, status)
     # End of GetTempDiodeStatus()
 
@@ -2423,11 +2423,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_ClearFactoryBadPixelsInDDR()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of ClearFactoryBadPixelsInDDR()
 
@@ -2439,11 +2439,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetFfcWaitOpenFrames()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFfcWaitOpenFrames()
 
@@ -2455,11 +2455,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetFfcWaitOpenFrames(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFfcWaitOpenFrames()
 
@@ -2471,11 +2471,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetFfcWaitOpenFlagSettleFrames()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFfcWaitOpenFlagSettleFrames()
 
@@ -2487,11 +2487,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetFfcWaitOpenFlagSettleFrames(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFfcWaitOpenFlagSettleFrames()
 
@@ -2503,11 +2503,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetTauExtFfcCompatibilityMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTauExtFfcCompatibilityMode()
 
@@ -2519,11 +2519,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetTauExtFfcCompatibilityMode(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTauExtFfcCompatibilityMode()
 
@@ -2535,11 +2535,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<INT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetInitialTableSelectionTempOffset()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetInitialTableSelectionTempOffset()
 
@@ -2551,11 +2551,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetInitialTableSelectionTempOffset(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetInitialTableSelectionTempOffset()
 
@@ -2567,11 +2567,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<INT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetImageValid()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetImageValid()
 
@@ -2583,11 +2583,11 @@ class pyClient(Packager):
             Output_01 data FLR_BOSON_TABLETYPE_E <<FLR_BOSON_TABLETYPE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetCurrentTableType()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetCurrentTableType()
 
@@ -2599,11 +2599,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetGainSwitchFrameThreshold()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGainSwitchFrameThreshold()
 
@@ -2615,11 +2615,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetGainSwitchFrameThreshold(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGainSwitchFrameThreshold()
 
@@ -2631,11 +2631,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetGainSwitchHysteresisTime()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGainSwitchHysteresisTime()
 
@@ -2647,11 +2647,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetGainSwitchHysteresisTime(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGainSwitchHysteresisTime()
 
@@ -2663,11 +2663,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetGainSwitchDesired()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGainSwitchDesired()
 
@@ -2679,11 +2679,11 @@ class pyClient(Packager):
             Output_01 parm_struct FLR_BOSON_GAIN_SWITCH_RADIOMETRIC_PARAMS_T <<FLR_BOSON_GAIN_SWITCH_RADIOMETRIC_PARAMS_T>>
         '''
         returnCode, parm_struct = self.CLIENT_pkg_boson_GetGainSwitchRadiometricParams()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, parm_struct)
     # End of GetGainSwitchRadiometricParams()
 
@@ -2695,11 +2695,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetGainSwitchRadiometricParams(parm_struct)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGainSwitchRadiometricParams()
 
@@ -2711,11 +2711,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetSaturationOverrideMode(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSaturationOverrideMode()
 
@@ -2727,11 +2727,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetSaturationOverrideMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSaturationOverrideMode()
 
@@ -2743,11 +2743,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetSaturationOverrideValue(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSaturationOverrideValue()
 
@@ -2759,11 +2759,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetSaturationOverrideValue()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSaturationOverrideValue()
 
@@ -2775,11 +2775,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetffcHighLowGainThresholdMode(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetffcHighLowGainThresholdMode()
 
@@ -2791,11 +2791,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetffcHighLowGainThresholdMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetffcHighLowGainThresholdMode()
 
@@ -2807,11 +2807,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetFFCTempThresholdLowGain(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFFCTempThresholdLowGain()
 
@@ -2823,11 +2823,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetFFCTempThresholdLowGain()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFFCTempThresholdLowGain()
 
@@ -2839,11 +2839,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetFFCFrameThresholdLowGain(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFFCFrameThresholdLowGain()
 
@@ -2855,11 +2855,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetFFCFrameThresholdLowGain()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFFCFrameThresholdLowGain()
 
@@ -2871,11 +2871,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetBoardID()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetBoardID()
 
@@ -2887,11 +2887,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetAutoGainSwitchConditions(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetAutoGainSwitchConditions()
 
@@ -2903,11 +2903,11 @@ class pyClient(Packager):
             Output_01 data FLR_BOSON_AUTOGAIN_SWITCH_CONDITION_E <<FLR_BOSON_AUTOGAIN_SWITCH_CONDITION_E>>
         '''
         returnCode, data = self.CLIENT_pkg_boson_GetAutoGainSwitchConditions()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetAutoGainSwitchConditions()
 
@@ -2919,11 +2919,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetGainSwitchParamsCATS(parm_struct)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGainSwitchParamsCATS()
 
@@ -2935,11 +2935,11 @@ class pyClient(Packager):
             Output_01 parm_struct FLR_BOSON_GAIN_SWITCH_PARAMS_T <<FLR_BOSON_GAIN_SWITCH_PARAMS_T>>
         '''
         returnCode, parm_struct = self.CLIENT_pkg_boson_GetGainSwitchParamsCATS()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, parm_struct)
     # End of GetGainSwitchParamsCATS()
 
@@ -2951,11 +2951,11 @@ class pyClient(Packager):
             Output_01 parm_struct FLR_BOSON_GAIN_SWITCH_RADIOMETRIC_PARAMS_T <<FLR_BOSON_GAIN_SWITCH_RADIOMETRIC_PARAMS_T>>
         '''
         returnCode, parm_struct = self.CLIENT_pkg_boson_GetGainSwitchRadiometricParamsCATS()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, parm_struct)
     # End of GetGainSwitchRadiometricParamsCATS()
 
@@ -2967,11 +2967,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_boson_SetGainSwitchRadiometricParamsCATS(parm_struct)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGainSwitchRadiometricParamsCATS()
 
@@ -2983,11 +2983,11 @@ class pyClient(Packager):
             Output_01 cLowToHighPercent <class 'int'> <<UINT_32>>
         '''
         returnCode, cLowToHighPercent = self.CLIENT_pkg_boson_GetCLowToHighPercentCATS()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, cLowToHighPercent)
     # End of GetCLowToHighPercentCATS()
 
@@ -2999,11 +2999,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_bpr_GetState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetState()
 
@@ -3015,11 +3015,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_bpr_SetState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetState()
 
@@ -3035,11 +3035,11 @@ class pyClient(Packager):
             Output_05 used <class 'int'> <<UINT_32>>
         '''
         returnCode, threeby, fiveby, rows, budget, used = self.CLIENT_pkg_bpr_GetStats()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None, None, None)
-        
+
         return ( returnCode, threeby, fiveby, rows, budget, used)
     # End of GetStats()
 
@@ -3051,11 +3051,11 @@ class pyClient(Packager):
             Output_01 data FLR_BPR_DISPLAY_MODE_E <<FLR_BPR_DISPLAY_MODE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_bpr_GetDisplayMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDisplayMode()
 
@@ -3067,11 +3067,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_bpr_SetDisplayMode(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDisplayMode()
 
@@ -3083,11 +3083,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_bpr_GetDisplayModeMinValue()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDisplayModeMinValue()
 
@@ -3099,11 +3099,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_bpr_SetDisplayModeMinValue(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDisplayModeMinValue()
 
@@ -3115,11 +3115,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_bpr_GetDisplayModeMaxValue()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDisplayModeMaxValue()
 
@@ -3131,11 +3131,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_bpr_SetDisplayModeMaxValue(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDisplayModeMaxValue()
 
@@ -3147,11 +3147,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_bpr_GetWorkBufIndex()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetWorkBufIndex()
 
@@ -3163,11 +3163,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_bpr_SetWorkBufIndex(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetWorkBufIndex()
 
@@ -3183,11 +3183,11 @@ class pyClient(Packager):
             Output_05 used <class 'int'> <<UINT_32>>
         '''
         returnCode, threeby, fiveby, rows, budget, used = self.CLIENT_pkg_bpr_GetWorkBufStats()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None, None, None)
-        
+
         return ( returnCode, threeby, fiveby, rows, budget, used)
     # End of GetWorkBufStats()
 
@@ -3198,11 +3198,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_capture_SingleFrame()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SingleFrame()
 
@@ -3214,11 +3214,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_capture_Frames(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Frames()
 
@@ -3230,11 +3230,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_capture_SingleFrameWithSrc(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SingleFrameWithSrc()
 
@@ -3245,11 +3245,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_capture_SingleFrameToFile()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SingleFrameToFile()
 
@@ -3261,11 +3261,11 @@ class pyClient(Packager):
             Output_01 status FLR_CAPTURE_STATUS_T <<FLR_CAPTURE_STATUS_T>>
         '''
         returnCode, status = self.CLIENT_pkg_capture_GetStatus()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, status)
     # End of GetStatus()
 
@@ -3277,11 +3277,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_colorLut_SetControl(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetControl()
 
@@ -3293,11 +3293,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_colorLut_GetControl()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetControl()
 
@@ -3309,11 +3309,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_colorLut_SetId(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetId()
 
@@ -3325,11 +3325,11 @@ class pyClient(Packager):
             Output_01 data FLR_COLORLUT_ID_E <<FLR_COLORLUT_ID_E>>
         '''
         returnCode, data = self.CLIENT_pkg_colorLut_GetId()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetId()
 
@@ -3343,11 +3343,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_colorLut_SetOutlineColor(red, green, blue)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOutlineColor()
 
@@ -3361,11 +3361,11 @@ class pyClient(Packager):
             Output_03 blue <class 'int'> <<UCHAR>>
         '''
         returnCode, red, green, blue = self.CLIENT_pkg_colorLut_GetOutlineColor()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None)
-        
+
         return ( returnCode, red, green, blue)
     # End of GetOutlineColor()
 
@@ -3376,11 +3376,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dummy_BadCommand()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of BadCommand()
 
@@ -3392,11 +3392,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetAnalogVideoState(analogVideoState)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetAnalogVideoState()
 
@@ -3408,11 +3408,11 @@ class pyClient(Packager):
             Output_01 analogVideoState FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, analogVideoState = self.CLIENT_pkg_dvo_GetAnalogVideoState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, analogVideoState)
     # End of GetAnalogVideoState()
 
@@ -3424,11 +3424,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetOutputFormat(format)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOutputFormat()
 
@@ -3440,11 +3440,11 @@ class pyClient(Packager):
             Output_01 format FLR_DVO_OUTPUT_FORMAT_E <<FLR_DVO_OUTPUT_FORMAT_E>>
         '''
         returnCode, format = self.CLIENT_pkg_dvo_GetOutputFormat()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, format)
     # End of GetOutputFormat()
 
@@ -3456,11 +3456,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetOutputYCbCrSettings(settings)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOutputYCbCrSettings()
 
@@ -3472,11 +3472,11 @@ class pyClient(Packager):
             Output_01 settings FLR_DVO_YCBCR_SETTINGS_T <<FLR_DVO_YCBCR_SETTINGS_T>>
         '''
         returnCode, settings = self.CLIENT_pkg_dvo_GetOutputYCbCrSettings()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, settings)
     # End of GetOutputYCbCrSettings()
 
@@ -3488,11 +3488,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetOutputRGBSettings(settings)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOutputRGBSettings()
 
@@ -3504,11 +3504,11 @@ class pyClient(Packager):
             Output_01 settings FLR_DVO_RGB_SETTINGS_T <<FLR_DVO_RGB_SETTINGS_T>>
         '''
         returnCode, settings = self.CLIENT_pkg_dvo_GetOutputRGBSettings()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, settings)
     # End of GetOutputRGBSettings()
 
@@ -3519,11 +3519,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_ApplyCustomSettings()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of ApplyCustomSettings()
 
@@ -3535,11 +3535,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetDisplayMode(displayMode)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDisplayMode()
 
@@ -3551,11 +3551,11 @@ class pyClient(Packager):
             Output_01 displayMode FLR_DVO_DISPLAY_MODE_E <<FLR_DVO_DISPLAY_MODE_E>>
         '''
         returnCode, displayMode = self.CLIENT_pkg_dvo_GetDisplayMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, displayMode)
     # End of GetDisplayMode()
 
@@ -3567,11 +3567,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetType(tap)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetType()
 
@@ -3583,11 +3583,11 @@ class pyClient(Packager):
             Output_01 tap FLR_DVO_TYPE_E <<FLR_DVO_TYPE_E>>
         '''
         returnCode, tap = self.CLIENT_pkg_dvo_GetType()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, tap)
     # End of GetType()
 
@@ -3599,11 +3599,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetVideoStandard(videoStandard)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetVideoStandard()
 
@@ -3615,11 +3615,11 @@ class pyClient(Packager):
             Output_01 videoStandard FLR_DVO_VIDEO_STANDARD_E <<FLR_DVO_VIDEO_STANDARD_E>>
         '''
         returnCode, videoStandard = self.CLIENT_pkg_dvo_GetVideoStandard()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, videoStandard)
     # End of GetVideoStandard()
 
@@ -3631,11 +3631,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetCheckVideoDacPresent(checkVideoDacPresent)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetCheckVideoDacPresent()
 
@@ -3647,11 +3647,11 @@ class pyClient(Packager):
             Output_01 checkVideoDacPresent FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, checkVideoDacPresent = self.CLIENT_pkg_dvo_GetCheckVideoDacPresent()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, checkVideoDacPresent)
     # End of GetCheckVideoDacPresent()
 
@@ -3664,11 +3664,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetCustomLcdConfig(id, config)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetCustomLcdConfig()
 
@@ -3681,11 +3681,11 @@ class pyClient(Packager):
             Output_01 config FLR_DVO_LCD_CONFIG_T <<FLR_DVO_LCD_CONFIG_T>>
         '''
         returnCode, config = self.CLIENT_pkg_dvo_GetCustomLcdConfig(id)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, config)
     # End of GetCustomLcdConfig()
 
@@ -3697,11 +3697,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetLCDConfig(id)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetLCDConfig()
 
@@ -3713,11 +3713,11 @@ class pyClient(Packager):
             Output_01 id FLR_DVO_LCD_CONFIG_ID_E <<FLR_DVO_LCD_CONFIG_ID_E>>
         '''
         returnCode, id = self.CLIENT_pkg_dvo_GetLCDConfig()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, id)
     # End of GetLCDConfig()
 
@@ -3748,11 +3748,11 @@ class pyClient(Packager):
             Output_20 dataWidthInBits <class 'int'> <<UINT_32>>
         '''
         returnCode, horizontalSyncWidth, verticalSyncWidth, clocksPerRowPeriod, horizontalFrontPorch, horizontalBackPorch, frontTelemetryPixels, rearTelemetryPixels, videoColumns, validColumns, telemetryRows, videoRows, validRows, verticalFrontPorch, verticalBackPorch, rowPeriodsPerFrame, clocksPerFrame, clockRateInMHz, frameRateInHz, validOnRisingEdge, dataWidthInBits = self.CLIENT_pkg_dvo_GetClockInfo()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None, None)
-        
+
         return ( returnCode, horizontalSyncWidth, verticalSyncWidth, clocksPerRowPeriod, horizontalFrontPorch, horizontalBackPorch, frontTelemetryPixels, rearTelemetryPixels, videoColumns, validColumns, telemetryRows, videoRows, validRows, verticalFrontPorch, verticalBackPorch, rowPeriodsPerFrame, clocksPerFrame, clockRateInMHz, frameRateInHz, validOnRisingEdge, dataWidthInBits)
     # End of GetClockInfo()
 
@@ -3765,11 +3765,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetAllCustomLcdConfigs(config0, config1)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetAllCustomLcdConfigs()
 
@@ -3782,11 +3782,11 @@ class pyClient(Packager):
             Output_02 config1 FLR_DVO_LCD_CONFIG_T <<FLR_DVO_LCD_CONFIG_T>>
         '''
         returnCode, config0, config1 = self.CLIENT_pkg_dvo_GetAllCustomLcdConfigs()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, config0, config1)
     # End of GetAllCustomLcdConfigs()
 
@@ -3798,11 +3798,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetOutputIr16Format(format)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOutputIr16Format()
 
@@ -3814,11 +3814,11 @@ class pyClient(Packager):
             Output_01 format FLR_DVO_OUTPUT_IR16_FORMAT_E <<FLR_DVO_OUTPUT_IR16_FORMAT_E>>
         '''
         returnCode, format = self.CLIENT_pkg_dvo_GetOutputIr16Format()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, format)
     # End of GetOutputIr16Format()
 
@@ -3830,11 +3830,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetLcdClockRate(clockRate)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetLcdClockRate()
 
@@ -3846,11 +3846,11 @@ class pyClient(Packager):
             Output_01 clockRate FLR_DVO_LCD_CLOCK_RATE_E <<FLR_DVO_LCD_CLOCK_RATE_E>>
         '''
         returnCode, clockRate = self.CLIENT_pkg_dvo_GetLcdClockRate()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, clockRate)
     # End of GetLcdClockRate()
 
@@ -3862,11 +3862,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetLcdVideoFrameRate(framerate)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetLcdVideoFrameRate()
 
@@ -3878,11 +3878,11 @@ class pyClient(Packager):
             Output_01 framerate <class 'int'> <<UINT_32>>
         '''
         returnCode, framerate = self.CLIENT_pkg_dvo_GetLcdVideoFrameRate()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, framerate)
     # End of GetLcdVideoFrameRate()
 
@@ -3894,11 +3894,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetMipiStartState(state)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMipiStartState()
 
@@ -3910,11 +3910,11 @@ class pyClient(Packager):
             Output_01 state FLR_DVO_MIPI_STATE_E <<FLR_DVO_MIPI_STATE_E>>
         '''
         returnCode, state = self.CLIENT_pkg_dvo_GetMipiStartState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, state)
     # End of GetMipiStartState()
 
@@ -3926,11 +3926,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetMipiState(state)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMipiState()
 
@@ -3942,11 +3942,11 @@ class pyClient(Packager):
             Output_01 state FLR_DVO_MIPI_STATE_E <<FLR_DVO_MIPI_STATE_E>>
         '''
         returnCode, state = self.CLIENT_pkg_dvo_GetMipiState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, state)
     # End of GetMipiState()
 
@@ -3958,11 +3958,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetMipiClockLaneMode(mode)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMipiClockLaneMode()
 
@@ -3974,11 +3974,11 @@ class pyClient(Packager):
             Output_01 mode FLR_DVO_MIPI_CLOCK_LANE_MODE_E <<FLR_DVO_MIPI_CLOCK_LANE_MODE_E>>
         '''
         returnCode, mode = self.CLIENT_pkg_dvo_GetMipiClockLaneMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, mode)
     # End of GetMipiClockLaneMode()
 
@@ -3990,11 +3990,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetOutputInterface(format)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOutputInterface()
 
@@ -4006,11 +4006,11 @@ class pyClient(Packager):
             Output_01 format FLR_DVO_OUTPUT_INTERFACE_E <<FLR_DVO_OUTPUT_INTERFACE_E>>
         '''
         returnCode, format = self.CLIENT_pkg_dvo_GetOutputInterface()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, format)
     # End of GetOutputInterface()
 
@@ -4022,11 +4022,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvo_SetOutputFormatVC1(format)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOutputFormatVC1()
 
@@ -4038,11 +4038,11 @@ class pyClient(Packager):
             Output_01 format FLR_DVO_OUTPUT_FORMAT_E <<FLR_DVO_OUTPUT_FORMAT_E>>
         '''
         returnCode, format = self.CLIENT_pkg_dvo_GetOutputFormatVC1()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, format)
     # End of GetOutputFormatVC1()
 
@@ -4056,11 +4056,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_dvoMux_SetType(output, source, type)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetType()
 
@@ -4074,11 +4074,11 @@ class pyClient(Packager):
             Output_02 type FLR_DVOMUX_TYPE_E <<FLR_DVOMUX_TYPE_E>>
         '''
         returnCode, source, type = self.CLIENT_pkg_dvoMux_GetType(output)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, source, type)
     # End of GetType()
 
@@ -4090,11 +4090,11 @@ class pyClient(Packager):
             Output_01 dirent[<class 'int'>] 128 <<UCHAR*128>>
         '''
         returnCode, dirent = self.CLIENT_pkg_fileOps_Dir()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, dirent)
     # End of Dir()
 
@@ -4107,11 +4107,11 @@ class pyClient(Packager):
             Output_01 pwd[<class 'int'>] 128 <<UCHAR*128>>
         '''
         returnCode, pwd = self.CLIENT_pkg_fileOps_Cd(path)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, pwd)
     # End of Cd()
 
@@ -4123,11 +4123,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_fileOps_Md(path)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Md()
 
@@ -4141,11 +4141,11 @@ class pyClient(Packager):
             Output_01 id <class 'int'> <<UINT_32>>
         '''
         returnCode, id = self.CLIENT_pkg_fileOps_Fopen(path, mode)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, id)
     # End of Fopen()
 
@@ -4157,11 +4157,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_fileOps_Fclose(id)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Fclose()
 
@@ -4176,11 +4176,11 @@ class pyClient(Packager):
             Output_02 ret <class 'int'> <<UINT_32>>
         '''
         returnCode, buf, ret = self.CLIENT_pkg_fileOps_Fread(id, length)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, buf, ret)
     # End of Fread()
 
@@ -4195,11 +4195,11 @@ class pyClient(Packager):
             Output_01 ret <class 'int'> <<UINT_32>>
         '''
         returnCode, ret = self.CLIENT_pkg_fileOps_Fwrite(id, length, buf)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, ret)
     # End of Fwrite()
 
@@ -4212,11 +4212,11 @@ class pyClient(Packager):
             Output_01 offset <class 'int'> <<UINT_32>>
         '''
         returnCode, offset = self.CLIENT_pkg_fileOps_Ftell(id)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, offset)
     # End of Ftell()
 
@@ -4230,11 +4230,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_fileOps_Fseek(id, offset, origin)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Fseek()
 
@@ -4247,11 +4247,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_fileOps_Ftruncate(id, length)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Ftruncate()
 
@@ -4263,11 +4263,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_fileOps_Rmdir(path)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Rmdir()
 
@@ -4279,11 +4279,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_fileOps_Rm(path)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Rm()
 
@@ -4296,11 +4296,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_fileOps_Rename(oldpath, newpath)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Rename()
 
@@ -4313,11 +4313,11 @@ class pyClient(Packager):
             Output_01 fileLength <class 'int'> <<UINT_32>>
         '''
         returnCode, fileLength = self.CLIENT_pkg_fileOps_GetFileSize(path)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, fileLength)
     # End of GetFileSize()
 
@@ -4329,11 +4329,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_flashIO_SetProtectionState(protectionState)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetProtectionState()
 
@@ -4345,11 +4345,11 @@ class pyClient(Packager):
             Output_01 protectionState FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, protectionState = self.CLIENT_pkg_flashIO_GetProtectionState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, protectionState)
     # End of GetProtectionState()
 
@@ -4363,11 +4363,11 @@ class pyClient(Packager):
             Output_03 patch <class 'int'> <<UINT_32>>
         '''
         returnCode, major, minor, patch = self.CLIENT_pkg_flashMapFs_GetHeaderVersion()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None)
-        
+
         return ( returnCode, major, minor, patch)
     # End of GetHeaderVersion()
 
@@ -4379,11 +4379,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetGainState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGainState()
 
@@ -4395,11 +4395,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetGainState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGainState()
 
@@ -4411,11 +4411,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetFfcState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFfcState()
 
@@ -4427,11 +4427,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetFfcState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFfcState()
 
@@ -4443,11 +4443,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetTempCorrectionState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTempCorrectionState()
 
@@ -4459,11 +4459,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetTempCorrectionState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempCorrectionState()
 
@@ -4475,11 +4475,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetIConstL(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetIConstL()
 
@@ -4491,11 +4491,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<INT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetIConstL()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetIConstL()
 
@@ -4507,11 +4507,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetIConstM(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetIConstM()
 
@@ -4523,11 +4523,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<INT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetIConstM()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetIConstM()
 
@@ -4539,11 +4539,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetAveragerState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetAveragerState()
 
@@ -4555,11 +4555,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetAveragerState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetAveragerState()
 
@@ -4571,11 +4571,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetNumFFCFrames(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetNumFFCFrames()
 
@@ -4587,11 +4587,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetNumFFCFrames()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetNumFFCFrames()
 
@@ -4603,11 +4603,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetAveragerThreshold()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetAveragerThreshold()
 
@@ -4619,11 +4619,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetTestRampState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTestRampState()
 
@@ -4635,11 +4635,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetTestRampState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTestRampState()
 
@@ -4651,11 +4651,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetSffcState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSffcState()
 
@@ -4667,11 +4667,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetSffcState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSffcState()
 
@@ -4683,11 +4683,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetNucType(nucType)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetNucType()
 
@@ -4699,11 +4699,11 @@ class pyClient(Packager):
             Output_01 nucType FLR_GAO_NUC_TYPE_E <<FLR_GAO_NUC_TYPE_E>>
         '''
         returnCode, nucType = self.CLIENT_pkg_gao_GetNucType()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, nucType)
     # End of GetNucType()
 
@@ -4715,11 +4715,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetFfcZeroMeanState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFfcZeroMeanState()
 
@@ -4731,11 +4731,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetFfcZeroMeanState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFfcZeroMeanState()
 
@@ -4747,11 +4747,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetAveragerDesiredState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetAveragerDesiredState()
 
@@ -4763,11 +4763,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetAppliedClip()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetAppliedClip()
 
@@ -4779,11 +4779,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetAppliedClipEnable(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetAppliedClipEnable()
 
@@ -4795,11 +4795,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetAppliedClipEnable()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetAppliedClipEnable()
 
@@ -4811,11 +4811,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetFfcShutterSimulationState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFfcShutterSimulationState()
 
@@ -4827,11 +4827,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetFfcShutterSimulationState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFfcShutterSimulationState()
 
@@ -4843,11 +4843,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetFfcShutterSimulatorValue(value)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFfcShutterSimulatorValue()
 
@@ -4859,11 +4859,11 @@ class pyClient(Packager):
             Output_01 value <class 'int'> <<UINT_16>>
         '''
         returnCode, value = self.CLIENT_pkg_gao_GetFfcShutterSimulatorValue()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, value)
     # End of GetFfcShutterSimulatorValue()
 
@@ -4875,11 +4875,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetBcnrState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetBcnrState()
 
@@ -4891,11 +4891,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetBcnrState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetBcnrState()
 
@@ -4907,11 +4907,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_gao_GetAppliedSffcScaleFactor()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetAppliedSffcScaleFactor()
 
@@ -4923,11 +4923,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_gao_SetSffcMode(mode)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSffcMode()
 
@@ -4939,11 +4939,11 @@ class pyClient(Packager):
             Output_01 mode FLR_GAO_SFFC_MODE_E <<FLR_GAO_SFFC_MODE_E>>
         '''
         returnCode, mode = self.CLIENT_pkg_gao_GetSffcMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, mode)
     # End of GetSffcMode()
 
@@ -4955,11 +4955,11 @@ class pyClient(Packager):
             Output_01 totalPixelsInROI <class 'int'> <<UINT_32>>
         '''
         returnCode, totalPixelsInROI = self.CLIENT_pkg_imageStats_GetTotalHistPixelsInROI()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, totalPixelsInROI)
     # End of GetTotalHistPixelsInROI()
 
@@ -4971,11 +4971,11 @@ class pyClient(Packager):
             Output_01 popBelowLowToHighThresh <class 'int'> <<UINT_32>>
         '''
         returnCode, popBelowLowToHighThresh = self.CLIENT_pkg_imageStats_GetPopBelowLowToHighThresh()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, popBelowLowToHighThresh)
     # End of GetPopBelowLowToHighThresh()
 
@@ -4987,11 +4987,11 @@ class pyClient(Packager):
             Output_01 popAboveHighToLowThresh <class 'int'> <<UINT_32>>
         '''
         returnCode, popAboveHighToLowThresh = self.CLIENT_pkg_imageStats_GetPopAboveHighToLowThresh()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, popAboveHighToLowThresh)
     # End of GetPopAboveHighToLowThresh()
 
@@ -5003,11 +5003,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_imageStats_SetROI(roi)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetROI()
 
@@ -5019,11 +5019,11 @@ class pyClient(Packager):
             Output_01 roi FLR_ROI_T <<FLR_ROI_T>>
         '''
         returnCode, roi = self.CLIENT_pkg_imageStats_GetROI()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, roi)
     # End of GetROI()
 
@@ -5035,11 +5035,11 @@ class pyClient(Packager):
             Output_01 firstBin <class 'int'> <<UINT_16>>
         '''
         returnCode, firstBin = self.CLIENT_pkg_imageStats_GetFirstBin()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, firstBin)
     # End of GetFirstBin()
 
@@ -5051,11 +5051,11 @@ class pyClient(Packager):
             Output_01 lastBin <class 'int'> <<UINT_16>>
         '''
         returnCode, lastBin = self.CLIENT_pkg_imageStats_GetLastBin()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, lastBin)
     # End of GetLastBin()
 
@@ -5067,11 +5067,11 @@ class pyClient(Packager):
             Output_01 mean <class 'int'> <<UINT_16>>
         '''
         returnCode, mean = self.CLIENT_pkg_imageStats_GetMean()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, mean)
     # End of GetMean()
 
@@ -5083,11 +5083,11 @@ class pyClient(Packager):
             Output_01 firstBinInROI <class 'int'> <<UINT_16>>
         '''
         returnCode, firstBinInROI = self.CLIENT_pkg_imageStats_GetFirstBinInROI()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, firstBinInROI)
     # End of GetFirstBinInROI()
 
@@ -5099,11 +5099,11 @@ class pyClient(Packager):
             Output_01 lastBinInROI <class 'int'> <<UINT_16>>
         '''
         returnCode, lastBinInROI = self.CLIENT_pkg_imageStats_GetLastBinInROI()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, lastBinInROI)
     # End of GetLastBinInROI()
 
@@ -5115,11 +5115,11 @@ class pyClient(Packager):
             Output_01 meanInROI <class 'int'> <<UINT_16>>
         '''
         returnCode, meanInROI = self.CLIENT_pkg_imageStats_GetMeanInROI()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, meanInROI)
     # End of GetMeanInROI()
 
@@ -5133,11 +5133,11 @@ class pyClient(Packager):
             Output_03 baseIntensity <class 'int'> <<UINT_16>>
         '''
         returnCode, meanIntensity, peakIntensity, baseIntensity = self.CLIENT_pkg_imageStats_GetImageStats()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None)
-        
+
         return ( returnCode, meanIntensity, peakIntensity, baseIntensity)
     # End of GetImageStats()
 
@@ -5149,11 +5149,11 @@ class pyClient(Packager):
             Output_01 popAboveLowToHighThresh <class 'int'> <<UINT_32>>
         '''
         returnCode, popAboveLowToHighThresh = self.CLIENT_pkg_imageStats_GetPopAboveLowToHighThreshCATS()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, popAboveLowToHighThresh)
     # End of GetPopAboveLowToHighThreshCATS()
 
@@ -5165,11 +5165,11 @@ class pyClient(Packager):
             Output_01 popBelowHighToLowThresh <class 'int'> <<UINT_32>>
         '''
         returnCode, popBelowHighToLowThresh = self.CLIENT_pkg_imageStats_GetPopBelowHighToLowThreshCATS()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, popBelowHighToLowThresh)
     # End of GetPopBelowHighToLowThreshCATS()
 
@@ -5181,11 +5181,11 @@ class pyClient(Packager):
             Output_01 popBetweenCatsAndSats <class 'int'> <<UINT_32>>
         '''
         returnCode, popBetweenCatsAndSats = self.CLIENT_pkg_imageStats_GetPopBetweenLthCATSAndLthSATS()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, popBetweenCatsAndSats)
     # End of GetPopBetweenLthCATSAndLthSATS()
 
@@ -5197,11 +5197,11 @@ class pyClient(Packager):
             Output_01 isothermEnable FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, isothermEnable = self.CLIENT_pkg_isotherm_GetEnable()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, isothermEnable)
     # End of GetEnable()
 
@@ -5213,11 +5213,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_isotherm_SetEnable(isothermEnable)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetEnable()
 
@@ -5234,11 +5234,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_isotherm_SetTemps(table, thIsoT1, thIsoT2, thIsoT3, thIsoT4, thIsoT5)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTemps()
 
@@ -5255,11 +5255,11 @@ class pyClient(Packager):
             Output_05 thIsoT5 <class 'int'> <<INT_32>>
         '''
         returnCode, thIsoT1, thIsoT2, thIsoT3, thIsoT4, thIsoT5 = self.CLIENT_pkg_isotherm_GetTemps(table)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None, None, None)
-        
+
         return ( returnCode, thIsoT1, thIsoT2, thIsoT3, thIsoT4, thIsoT5)
     # End of GetTemps()
 
@@ -5277,11 +5277,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_isotherm_SetIsoColorValues(table, region0, region1, region2, region3, region4, region5)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetIsoColorValues()
 
@@ -5299,11 +5299,11 @@ class pyClient(Packager):
             Output_06 region5 FLR_ISOTHERM_COLORS_T <<FLR_ISOTHERM_COLORS_T>>
         '''
         returnCode, region0, region1, region2, region3, region4, region5 = self.CLIENT_pkg_isotherm_GetIsoColorValues(table)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None, None, None, None)
-        
+
         return ( returnCode, region0, region1, region2, region3, region4, region5)
     # End of GetIsoColorValues()
 
@@ -5321,11 +5321,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_isotherm_SetRegionMode(table, region0, region1, region2, region3, region4, region5)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetRegionMode()
 
@@ -5343,11 +5343,11 @@ class pyClient(Packager):
             Output_06 region5 FLR_ISOTHERM_REGION_E <<FLR_ISOTHERM_REGION_E>>
         '''
         returnCode, region0, region1, region2, region3, region4, region5 = self.CLIENT_pkg_isotherm_GetRegionMode(table)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None, None, None, None)
-        
+
         return ( returnCode, region0, region1, region2, region3, region4, region5)
     # End of GetRegionMode()
 
@@ -5359,11 +5359,11 @@ class pyClient(Packager):
             Output_01 unit FLR_ISOTHERM_UNIT_E <<FLR_ISOTHERM_UNIT_E>>
         '''
         returnCode, unit = self.CLIENT_pkg_isotherm_GetUnit()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, unit)
     # End of GetUnit()
 
@@ -5375,11 +5375,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_isotherm_SetUnit(unit)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetUnit()
 
@@ -5391,11 +5391,11 @@ class pyClient(Packager):
             Output_01 settings FLR_ISOTHERM_SETTINGS_T <<FLR_ISOTHERM_SETTINGS_T>>
         '''
         returnCode, settings = self.CLIENT_pkg_isotherm_GetSettingsLowGain()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, settings)
     # End of GetSettingsLowGain()
 
@@ -5407,11 +5407,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_isotherm_SetSettingsLowGain(settings)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSettingsLowGain()
 
@@ -5423,11 +5423,11 @@ class pyClient(Packager):
             Output_01 settings FLR_ISOTHERM_SETTINGS_T <<FLR_ISOTHERM_SETTINGS_T>>
         '''
         returnCode, settings = self.CLIENT_pkg_isotherm_GetSettingsHighGain()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, settings)
     # End of GetSettingsHighGain()
 
@@ -5439,11 +5439,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_isotherm_SetSettingsHighGain(settings)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSettingsHighGain()
 
@@ -5456,11 +5456,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_isotherm_SetColorLutId(colorLutIdLowGain, colorLutIdHighGain)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetColorLutId()
 
@@ -5473,11 +5473,11 @@ class pyClient(Packager):
             Output_02 colorLutIdHighGain FLR_COLORLUT_ID_E <<FLR_COLORLUT_ID_E>>
         '''
         returnCode, colorLutIdLowGain, colorLutIdHighGain = self.CLIENT_pkg_isotherm_GetColorLutId()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, colorLutIdLowGain, colorLutIdHighGain)
     # End of GetColorLutId()
 
@@ -5488,11 +5488,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_jffs2_Mount()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Mount()
 
@@ -5503,11 +5503,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_jffs2_Unmount()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Unmount()
 
@@ -5519,11 +5519,11 @@ class pyClient(Packager):
             Output_01 state FLR_JFFS2_STATE_E <<FLR_JFFS2_STATE_E>>
         '''
         returnCode, state = self.CLIENT_pkg_jffs2_GetState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, state)
     # End of GetState()
 
@@ -5535,11 +5535,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_latencyCtrl_SetLowLatencyState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetLowLatencyState()
 
@@ -5551,11 +5551,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_latencyCtrl_GetLowLatencyState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetLowLatencyState()
 
@@ -5568,11 +5568,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_latencyCtrl_SetJitterReduction(enable, line)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetJitterReduction()
 
@@ -5585,11 +5585,11 @@ class pyClient(Packager):
             Output_02 line <class 'int'> <<INT_32>>
         '''
         returnCode, enable, line = self.CLIENT_pkg_latencyCtrl_GetJitterReduction()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, enable, line)
     # End of GetJitterReduction()
 
@@ -5600,11 +5600,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_latencyCtrl_LatencyResetStats()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of LatencyResetStats()
 
@@ -5617,11 +5617,11 @@ class pyClient(Packager):
             Output_02 jitterMax <class 'float'> <<FLOAT>>
         '''
         returnCode, jitterMin, jitterMax = self.CLIENT_pkg_latencyCtrl_GetJitter()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, jitterMin, jitterMax)
     # End of GetJitter()
 
@@ -5634,11 +5634,11 @@ class pyClient(Packager):
             Output_02 latencyMax <class 'float'> <<FLOAT>>
         '''
         returnCode, latencyMin, latencyMax = self.CLIENT_pkg_latencyCtrl_GetLatency()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, latencyMin, latencyMax)
     # End of GetLatency()
 
@@ -5650,11 +5650,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_latencyCtrl_SetUsbVideoLatencyReduction(line)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetUsbVideoLatencyReduction()
 
@@ -5666,11 +5666,11 @@ class pyClient(Packager):
             Output_01 line <class 'int'> <<INT_32>>
         '''
         returnCode, line = self.CLIENT_pkg_latencyCtrl_GetUsbVideoLatencyReduction()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, line)
     # End of GetUsbVideoLatencyReduction()
 
@@ -5682,11 +5682,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_lfsr_SetApplyOffsetEnableState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetApplyOffsetEnableState()
 
@@ -5698,11 +5698,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_lfsr_GetApplyOffsetEnableState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetApplyOffsetEnableState()
 
@@ -5714,11 +5714,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_lfsr_SetMaxIterations(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMaxIterations()
 
@@ -5730,11 +5730,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_lfsr_GetMaxIterations()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMaxIterations()
 
@@ -5746,11 +5746,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_lfsr_SetDf(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDf()
 
@@ -5762,11 +5762,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_lfsr_GetDf()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDf()
 
@@ -5778,11 +5778,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_lfsr_SetLambda1(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetLambda1()
 
@@ -5794,11 +5794,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_lfsr_GetLambda1()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetLambda1()
 
@@ -5810,11 +5810,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_lfsr_SetLambda2(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetLambda2()
 
@@ -5826,11 +5826,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_lfsr_GetLambda2()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetLambda2()
 
@@ -5842,11 +5842,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_lfsr_SetHaltEnable(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetHaltEnable()
 
@@ -5858,11 +5858,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_lfsr_GetHaltEnable()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetHaltEnable()
 
@@ -5874,11 +5874,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_lfsr_SetRandomMethod(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetRandomMethod()
 
@@ -5890,11 +5890,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_lfsr_GetRandomMethod()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetRandomMethod()
 
@@ -5906,11 +5906,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_lfsr_SetSingleStepEnable(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSingleStepEnable()
 
@@ -5922,11 +5922,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_lfsr_GetSingleStepEnable()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSingleStepEnable()
 
@@ -5938,11 +5938,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_lfsr_SetR_LocalBump(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetR_LocalBump()
 
@@ -5954,11 +5954,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_lfsr_GetR_LocalBump()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetR_LocalBump()
 
@@ -5970,11 +5970,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_lfsr_SetR_CornerBump(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetR_CornerBump()
 
@@ -5986,11 +5986,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_lfsr_GetR_CornerBump()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetR_CornerBump()
 
@@ -6002,11 +6002,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_lfsr_SetFFC_ResetEnable(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFFC_ResetEnable()
 
@@ -6018,11 +6018,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_lfsr_GetFFC_ResetEnable()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFFC_ResetEnable()
 
@@ -6034,11 +6034,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_lfsr_SetNormalizeAtCenterSpotState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetNormalizeAtCenterSpotState()
 
@@ -6050,11 +6050,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_lfsr_GetNormalizeAtCenterSpotState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetNormalizeAtCenterSpotState()
 
@@ -6071,11 +6071,11 @@ class pyClient(Packager):
         if(sizeInBytes > MaxMemoryChunk):
             return FLR_RESULT.FLR_DATA_SIZE_ERROR, None
         returnCode, data = self.CLIENT_pkg_mem_ReadCapture(bufferNum, offset, sizeInBytes)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of ReadCapture()
 
@@ -6089,11 +6089,11 @@ class pyClient(Packager):
             Output_03 columns <class 'int'> <<UINT_16>>
         '''
         returnCode, bytes, rows, columns = self.CLIENT_pkg_mem_GetCaptureSize()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None)
-        
+
         return ( returnCode, bytes, rows, columns)
     # End of GetCaptureSize()
 
@@ -6111,11 +6111,11 @@ class pyClient(Packager):
         if(sizeInBytes > MaxMemoryChunk):
             return FLR_RESULT.FLR_DATA_SIZE_ERROR
         returnCode = self.CLIENT_pkg_mem_WriteFlash(location, index, offset, sizeInBytes, data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of WriteFlash()
 
@@ -6133,11 +6133,11 @@ class pyClient(Packager):
         if(sizeInBytes > MaxMemoryChunk):
             return FLR_RESULT.FLR_DATA_SIZE_ERROR, None
         returnCode, data = self.CLIENT_pkg_mem_ReadFlash(location, index, offset, sizeInBytes)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of ReadFlash()
 
@@ -6150,11 +6150,11 @@ class pyClient(Packager):
             Output_01 bytes <class 'int'> <<UINT_32>>
         '''
         returnCode, bytes = self.CLIENT_pkg_mem_GetFlashSize(location)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, bytes)
     # End of GetFlashSize()
 
@@ -6167,11 +6167,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_mem_EraseFlash(location, index)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of EraseFlash()
 
@@ -6186,11 +6186,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_mem_EraseFlashPartial(location, index, offset, length)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of EraseFlashPartial()
 
@@ -6206,11 +6206,11 @@ class pyClient(Packager):
         if(sizeInBytes > MaxMemoryChunk):
             return FLR_RESULT.FLR_DATA_SIZE_ERROR, None
         returnCode, data = self.CLIENT_pkg_mem_ReadCurrentGain(offset, sizeInBytes)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of ReadCurrentGain()
 
@@ -6224,11 +6224,11 @@ class pyClient(Packager):
             Output_03 columns <class 'int'> <<UINT_16>>
         '''
         returnCode, bytes, rows, columns = self.CLIENT_pkg_mem_GetGainSize()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None)
-        
+
         return ( returnCode, bytes, rows, columns)
     # End of GetGainSize()
 
@@ -6243,11 +6243,11 @@ class pyClient(Packager):
             Output_03 columns <class 'int'> <<UINT_16>>
         '''
         returnCode, bytes, rows, columns = self.CLIENT_pkg_mem_GetCaptureSizeSrc(src)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None)
-        
+
         return ( returnCode, bytes, rows, columns)
     # End of GetCaptureSizeSrc()
 
@@ -6265,11 +6265,11 @@ class pyClient(Packager):
         if(sizeInBytes > MaxMemoryChunk):
             return FLR_RESULT.FLR_DATA_SIZE_ERROR, None
         returnCode, data = self.CLIENT_pkg_mem_ReadCaptureSrc(src, bufferNum, offset, sizeInBytes)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of ReadCaptureSrc()
 
@@ -6281,11 +6281,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTempStableEnable(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTempStableEnable()
 
@@ -6297,11 +6297,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTempStableEnable()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempStableEnable()
 
@@ -6313,11 +6313,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetFNumberLens0(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFNumberLens0()
 
@@ -6329,11 +6329,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetFNumberLens0()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFNumberLens0()
 
@@ -6345,11 +6345,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetFNumberLens1(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFNumberLens1()
 
@@ -6361,11 +6361,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetFNumberLens1()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFNumberLens1()
 
@@ -6377,11 +6377,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTauLens0(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTauLens0()
 
@@ -6393,11 +6393,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTauLens0()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTauLens0()
 
@@ -6409,11 +6409,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTauLens1(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTauLens1()
 
@@ -6425,11 +6425,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTauLens1()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTauLens1()
 
@@ -6441,11 +6441,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGlobalGainDesired()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGlobalGainDesired()
 
@@ -6457,11 +6457,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGlobalOffsetDesired()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGlobalOffsetDesired()
 
@@ -6473,11 +6473,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGlobalGainApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGlobalGainApplied()
 
@@ -6489,11 +6489,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGlobalOffsetApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGlobalOffsetApplied()
 
@@ -6505,11 +6505,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTComponentOverrideMode(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTComponentOverrideMode()
 
@@ -6521,11 +6521,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTComponentOverrideMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTComponentOverrideMode()
 
@@ -6537,11 +6537,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetGlobalGainOverride(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGlobalGainOverride()
 
@@ -6553,11 +6553,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGlobalGainOverride()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGlobalGainOverride()
 
@@ -6569,11 +6569,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetGlobalOffsetOverride(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGlobalOffsetOverride()
 
@@ -6585,11 +6585,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGlobalOffsetOverride()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGlobalOffsetOverride()
 
@@ -6601,11 +6601,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetGlobalParamOverrideMode(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGlobalParamOverrideMode()
 
@@ -6617,11 +6617,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGlobalParamOverrideMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGlobalParamOverrideMode()
 
@@ -6633,11 +6633,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetRBFOHighGainDefault(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetRBFOHighGainDefault()
 
@@ -6649,11 +6649,11 @@ class pyClient(Packager):
             Output_01 data FLR_RADIOMETRY_RBFO_PARAMS_T <<FLR_RADIOMETRY_RBFO_PARAMS_T>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetRBFOHighGainDefault()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetRBFOHighGainDefault()
 
@@ -6665,11 +6665,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetRBFOLowGainDefault(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetRBFOLowGainDefault()
 
@@ -6681,11 +6681,11 @@ class pyClient(Packager):
             Output_01 data FLR_RADIOMETRY_RBFO_PARAMS_T <<FLR_RADIOMETRY_RBFO_PARAMS_T>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetRBFOLowGainDefault()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetRBFOLowGainDefault()
 
@@ -6697,11 +6697,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetRBFOHighGainFactory(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetRBFOHighGainFactory()
 
@@ -6713,11 +6713,11 @@ class pyClient(Packager):
             Output_01 data FLR_RADIOMETRY_RBFO_PARAMS_T <<FLR_RADIOMETRY_RBFO_PARAMS_T>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetRBFOHighGainFactory()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetRBFOHighGainFactory()
 
@@ -6729,11 +6729,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetRBFOLowGainFactory(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetRBFOLowGainFactory()
 
@@ -6745,11 +6745,11 @@ class pyClient(Packager):
             Output_01 data FLR_RADIOMETRY_RBFO_PARAMS_T <<FLR_RADIOMETRY_RBFO_PARAMS_T>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetRBFOLowGainFactory()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetRBFOLowGainFactory()
 
@@ -6761,11 +6761,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetDampingFactor(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDampingFactor()
 
@@ -6777,11 +6777,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetDampingFactor()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDampingFactor()
 
@@ -6793,11 +6793,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGoMEQ()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGoMEQ()
 
@@ -6809,11 +6809,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGoMShutter()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGoMShutter()
 
@@ -6825,11 +6825,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGoMLens()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGoMLens()
 
@@ -6841,11 +6841,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGoMLG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGoMLG()
 
@@ -6857,11 +6857,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGoMFFC()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGoMFFC()
 
@@ -6873,11 +6873,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTempLensHousing()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempLensHousing()
 
@@ -6889,11 +6889,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTempShutterHousing()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempShutterHousing()
 
@@ -6905,11 +6905,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTempShutterPaddle()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempShutterPaddle()
 
@@ -6921,11 +6921,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetFNumberShutterHousing(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFNumberShutterHousing()
 
@@ -6937,11 +6937,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetFNumberShutterHousing()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFNumberShutterHousing()
 
@@ -6953,11 +6953,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetEmissivityShutterHousing(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetEmissivityShutterHousing()
 
@@ -6969,11 +6969,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetEmissivityShutterHousing()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetEmissivityShutterHousing()
 
@@ -6985,11 +6985,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_DTfpa_Lens(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_DTfpa_Lens()
 
@@ -7001,11 +7001,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_DTfpa_Lens()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_DTfpa_Lens()
 
@@ -7017,11 +7017,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetOffset_Lens(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOffset_Lens()
 
@@ -7033,11 +7033,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetOffset_Lens()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetOffset_Lens()
 
@@ -7049,11 +7049,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_Recursive_Lens(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_Recursive_Lens()
 
@@ -7065,11 +7065,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_Recursive_Lens()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_Recursive_Lens()
 
@@ -7081,11 +7081,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGgFfc()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGgFfc()
 
@@ -7099,11 +7099,11 @@ class pyClient(Packager):
             Output_01 counts <class 'int'> <<UINT_16>>
         '''
         returnCode, counts = self.CLIENT_pkg_radiometry_GetCountsFromTemp(rbfoType, temp)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, counts)
     # End of GetCountsFromTemp()
 
@@ -7117,11 +7117,11 @@ class pyClient(Packager):
             Output_01 temp <class 'float'> <<FLOAT>>
         '''
         returnCode, temp = self.CLIENT_pkg_radiometry_GetTempFromCounts(rbfoType, counts)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, temp)
     # End of GetTempFromCounts()
 
@@ -7133,11 +7133,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTempLensHousingOverride(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTempLensHousingOverride()
 
@@ -7149,11 +7149,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTempLensHousingOverride()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempLensHousingOverride()
 
@@ -7165,11 +7165,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTempShutterHousingOverride(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTempShutterHousingOverride()
 
@@ -7181,11 +7181,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTempShutterHousingOverride()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempShutterHousingOverride()
 
@@ -7197,11 +7197,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTempShutterPaddleOverride(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTempShutterPaddleOverride()
 
@@ -7213,11 +7213,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTempShutterPaddleOverride()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempShutterPaddleOverride()
 
@@ -7229,11 +7229,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetSignalFactorLut(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSignalFactorLut()
 
@@ -7245,11 +7245,11 @@ class pyClient(Packager):
             Output_01 data FLR_RADIOMETRY_SIGNAL_COMP_FACTOR_LUT_T <<FLR_RADIOMETRY_SIGNAL_COMP_FACTOR_LUT_T>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetSignalFactorLut()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSignalFactorLut()
 
@@ -7261,11 +7261,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetNoiseFactorLut(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetNoiseFactorLut()
 
@@ -7277,11 +7277,11 @@ class pyClient(Packager):
             Output_01 data FLR_RADIOMETRY_NOISE_COMP_FACTOR_LUT_T <<FLR_RADIOMETRY_NOISE_COMP_FACTOR_LUT_T>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetNoiseFactorLut()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetNoiseFactorLut()
 
@@ -7293,11 +7293,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_tfpaK(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_tfpaK()
 
@@ -7309,11 +7309,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_tfpaK()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_tfpaK()
 
@@ -7325,11 +7325,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetB_tfpaK(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetB_tfpaK()
 
@@ -7341,11 +7341,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetB_tfpaK()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetB_tfpaK()
 
@@ -7357,11 +7357,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTAuxParams(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTAuxParams()
 
@@ -7373,11 +7373,11 @@ class pyClient(Packager):
             Output_01 data FLR_RADIOMETRY_TAUX_PARAMS_T <<FLR_RADIOMETRY_TAUX_PARAMS_T>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTAuxParams()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTAuxParams()
 
@@ -7389,11 +7389,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_tAux(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_tAux()
 
@@ -7405,11 +7405,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_tAux()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_tAux()
 
@@ -7421,11 +7421,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetB_tAux(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetB_tAux()
 
@@ -7437,11 +7437,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetB_tAux()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetB_tAux()
 
@@ -7453,11 +7453,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTsource_FFC(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTsource_FFC()
 
@@ -7469,11 +7469,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTsource_FFC()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTsource_FFC()
 
@@ -7485,11 +7485,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_DTfpa_Sh_h(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_DTfpa_Sh_h()
 
@@ -7501,11 +7501,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_DTfpa_Sh_h()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_DTfpa_Sh_h()
 
@@ -7517,11 +7517,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetOffset_Sh_h(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOffset_Sh_h()
 
@@ -7533,11 +7533,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetOffset_Sh_h()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetOffset_Sh_h()
 
@@ -7549,11 +7549,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_Recursive_Sh_h(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_Recursive_Sh_h()
 
@@ -7565,11 +7565,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_Recursive_Sh_h()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_Recursive_Sh_h()
 
@@ -7581,11 +7581,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_DTfpa_Sh_p(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_DTfpa_Sh_p()
 
@@ -7597,11 +7597,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_DTfpa_Sh_p()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_DTfpa_Sh_p()
 
@@ -7613,11 +7613,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetOffset_Sh_p(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOffset_Sh_p()
 
@@ -7629,11 +7629,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetOffset_Sh_p()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetOffset_Sh_p()
 
@@ -7645,11 +7645,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_Recursive_Sh_p(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_Recursive_Sh_p()
 
@@ -7661,11 +7661,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_Recursive_Sh_p()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_Recursive_Sh_p()
 
@@ -7677,11 +7677,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_Delta_Sh_p(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_Delta_Sh_p()
 
@@ -7693,11 +7693,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_Delta_Sh_p()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_Delta_Sh_p()
 
@@ -7709,11 +7709,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetB_Delta_Sh_p(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetB_Delta_Sh_p()
 
@@ -7725,11 +7725,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetB_Delta_Sh_p()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetB_Delta_Sh_p()
 
@@ -7741,11 +7741,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetDtTfpaK()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDtTfpaK()
 
@@ -7757,11 +7757,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetDtTfpaK_Damp()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDtTfpaK_Damp()
 
@@ -7773,11 +7773,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTAuxK()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTAuxK()
 
@@ -7789,11 +7789,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetExternalFfcUpdateMode(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetExternalFfcUpdateMode()
 
@@ -7805,11 +7805,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetExternalFfcUpdateMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetExternalFfcUpdateMode()
 
@@ -7821,11 +7821,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGG_scale()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGG_scale()
 
@@ -7837,11 +7837,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTempWindow(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTempWindow()
 
@@ -7853,11 +7853,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTempWindow()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempWindow()
 
@@ -7869,11 +7869,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTransmissionWindow(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTransmissionWindow()
 
@@ -7885,11 +7885,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTransmissionWindow()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTransmissionWindow()
 
@@ -7901,11 +7901,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetReflectivityWindow(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetReflectivityWindow()
 
@@ -7917,11 +7917,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetReflectivityWindow()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetReflectivityWindow()
 
@@ -7933,11 +7933,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTempWindowReflection(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTempWindowReflection()
 
@@ -7949,11 +7949,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTempWindowReflection()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempWindowReflection()
 
@@ -7965,11 +7965,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTransmissionAtmosphere(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTransmissionAtmosphere()
 
@@ -7981,11 +7981,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTransmissionAtmosphere()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTransmissionAtmosphere()
 
@@ -7997,11 +7997,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTempAtmosphere(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTempAtmosphere()
 
@@ -8013,11 +8013,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTempAtmosphere()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempAtmosphere()
 
@@ -8029,11 +8029,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetEmissivityTarget(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetEmissivityTarget()
 
@@ -8045,11 +8045,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetEmissivityTarget()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetEmissivityTarget()
 
@@ -8061,11 +8061,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTempBackground(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTempBackground()
 
@@ -8077,11 +8077,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTempBackground()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempBackground()
 
@@ -8093,11 +8093,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetRadiometryCapable()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetRadiometryCapable()
 
@@ -8109,11 +8109,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetdeltaTempDampingFactor(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetdeltaTempDampingFactor()
 
@@ -8125,11 +8125,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetdeltaTempDampingFactor()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetdeltaTempDampingFactor()
 
@@ -8141,11 +8141,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetdeltaTempIntervalTime(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetdeltaTempIntervalTime()
 
@@ -8157,11 +8157,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetdeltaTempIntervalTime()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetdeltaTempIntervalTime()
 
@@ -8173,11 +8173,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetdeltaTempMaxValue(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetdeltaTempMaxValue()
 
@@ -8189,11 +8189,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetdeltaTempMaxValue()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetdeltaTempMaxValue()
 
@@ -8205,11 +8205,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetdeltaTempMaxIncrement(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetdeltaTempMaxIncrement()
 
@@ -8221,11 +8221,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetdeltaTempMaxIncrement()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetdeltaTempMaxIncrement()
 
@@ -8237,11 +8237,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetdeltaTempDampingTime(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetdeltaTempDampingTime()
 
@@ -8253,11 +8253,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetdeltaTempDampingTime()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetdeltaTempDampingTime()
 
@@ -8269,11 +8269,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetResponsivityFpaTemp()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetResponsivityFpaTemp()
 
@@ -8285,11 +8285,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_Delta_Lens(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_Delta_Lens()
 
@@ -8301,11 +8301,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_Delta_Lens()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_Delta_Lens()
 
@@ -8317,11 +8317,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetB_Delta_Lens(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetB_Delta_Lens()
 
@@ -8333,11 +8333,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetB_Delta_Lens()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetB_Delta_Lens()
 
@@ -8349,11 +8349,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_Delta_Sh_h(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_Delta_Sh_h()
 
@@ -8365,11 +8365,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_Delta_Sh_h()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_Delta_Sh_h()
 
@@ -8381,11 +8381,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetB_Delta_Sh_h(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetB_Delta_Sh_h()
 
@@ -8397,11 +8397,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetB_Delta_Sh_h()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetB_Delta_Sh_h()
 
@@ -8413,11 +8413,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetGG_Scale_HG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGG_Scale_HG()
 
@@ -8429,11 +8429,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGG_Scale_HG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGG_Scale_HG()
 
@@ -8445,11 +8445,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetGG_Scale_LG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetGG_Scale_LG()
 
@@ -8461,11 +8461,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGG_Scale_LG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGG_Scale_LG()
 
@@ -8477,11 +8477,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetRbfoScaledMode(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetRbfoScaledMode()
 
@@ -8493,11 +8493,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetRbfoScaledMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetRbfoScaledMode()
 
@@ -8509,11 +8509,11 @@ class pyClient(Packager):
             Output_01 data FLR_RADIOMETRY_UNCERTAINTY_FACTOR_E <<FLR_RADIOMETRY_UNCERTAINTY_FACTOR_E>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetUncertaintyFactor()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetUncertaintyFactor()
 
@@ -8525,11 +8525,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTRoomMinThresh()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTRoomMinThresh()
 
@@ -8541,11 +8541,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTRoomMaxThresh()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTRoomMaxThresh()
 
@@ -8557,11 +8557,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTOperatingMinThresh()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTOperatingMinThresh()
 
@@ -8573,11 +8573,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTOperatingMaxThresh()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTOperatingMaxThresh()
 
@@ -8589,11 +8589,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetStableTempThresh()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetStableTempThresh()
 
@@ -8605,11 +8605,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetSlowDriftThresh()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSlowDriftThresh()
 
@@ -8621,11 +8621,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetFfcTempThresh()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFfcTempThresh()
 
@@ -8637,11 +8637,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTargetTempMinThreshLG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTargetTempMinThreshLG()
 
@@ -8653,11 +8653,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTargetTempMaxThreshLG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTargetTempMaxThreshLG()
 
@@ -8669,11 +8669,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetMFactorThresh()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMFactorThresh()
 
@@ -8685,11 +8685,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTargetTempMinThreshHG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTargetTempMinThreshHG()
 
@@ -8701,11 +8701,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTargetTempMaxThreshHG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTargetTempMaxThreshHG()
 
@@ -8717,11 +8717,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetUncertaintyStatusBits()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetUncertaintyStatusBits()
 
@@ -8733,11 +8733,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTemperatureOffset_HG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTemperatureOffset_HG()
 
@@ -8749,11 +8749,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTemperatureOffset_HG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTemperatureOffset_HG()
 
@@ -8765,11 +8765,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetTemperatureOffset_LG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTemperatureOffset_LG()
 
@@ -8781,11 +8781,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetTemperatureOffset_LG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTemperatureOffset_LG()
 
@@ -8797,11 +8797,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_Delta_Lens_HG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_Delta_Lens_HG()
 
@@ -8813,11 +8813,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_Delta_Lens_HG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_Delta_Lens_HG()
 
@@ -8829,11 +8829,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetB_Delta_Lens_HG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetB_Delta_Lens_HG()
 
@@ -8845,11 +8845,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetB_Delta_Lens_HG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetB_Delta_Lens_HG()
 
@@ -8861,11 +8861,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_Delta_Lens_LG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_Delta_Lens_LG()
 
@@ -8877,11 +8877,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_Delta_Lens_LG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_Delta_Lens_LG()
 
@@ -8893,11 +8893,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetB_Delta_Lens_LG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetB_Delta_Lens_LG()
 
@@ -8909,11 +8909,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetB_Delta_Lens_LG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetB_Delta_Lens_LG()
 
@@ -8925,11 +8925,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetOffset_Lens_HG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOffset_Lens_HG()
 
@@ -8941,11 +8941,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetOffset_Lens_HG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetOffset_Lens_HG()
 
@@ -8957,11 +8957,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetOffset_Lens_LG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOffset_Lens_LG()
 
@@ -8973,11 +8973,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetOffset_Lens_LG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetOffset_Lens_LG()
 
@@ -8989,11 +8989,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_Delta_Sh_p_HG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_Delta_Sh_p_HG()
 
@@ -9005,11 +9005,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_Delta_Sh_p_HG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_Delta_Sh_p_HG()
 
@@ -9021,11 +9021,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetB_Delta_Sh_p_HG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetB_Delta_Sh_p_HG()
 
@@ -9037,11 +9037,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetB_Delta_Sh_p_HG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetB_Delta_Sh_p_HG()
 
@@ -9053,11 +9053,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_Delta_Sh_p_LG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_Delta_Sh_p_LG()
 
@@ -9069,11 +9069,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_Delta_Sh_p_LG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_Delta_Sh_p_LG()
 
@@ -9085,11 +9085,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetB_Delta_Sh_p_LG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetB_Delta_Sh_p_LG()
 
@@ -9101,11 +9101,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetB_Delta_Sh_p_LG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetB_Delta_Sh_p_LG()
 
@@ -9117,11 +9117,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_Delta_Sh_h_HG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_Delta_Sh_h_HG()
 
@@ -9133,11 +9133,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_Delta_Sh_h_HG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_Delta_Sh_h_HG()
 
@@ -9149,11 +9149,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetB_Delta_Sh_h_HG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetB_Delta_Sh_h_HG()
 
@@ -9165,11 +9165,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetB_Delta_Sh_h_HG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetB_Delta_Sh_h_HG()
 
@@ -9181,11 +9181,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetM_Delta_Sh_h_LG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_Delta_Sh_h_LG()
 
@@ -9197,11 +9197,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetM_Delta_Sh_h_LG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_Delta_Sh_h_LG()
 
@@ -9213,11 +9213,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_radiometry_SetB_Delta_Sh_h_LG(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetB_Delta_Sh_h_LG()
 
@@ -9229,11 +9229,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetB_Delta_Sh_h_LG()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetB_Delta_Sh_h_LG()
 
@@ -9245,11 +9245,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_radiometry_GetGG_RoomTemp()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetGG_RoomTemp()
 
@@ -9261,11 +9261,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_roic_GetFPATemp()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFPATemp()
 
@@ -9277,11 +9277,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_roic_GetFrameCount()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFrameCount()
 
@@ -9293,11 +9293,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_roic_GetActiveNormalizationTarget()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetActiveNormalizationTarget()
 
@@ -9309,11 +9309,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_roic_SetFPARampState(state)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFPARampState()
 
@@ -9325,11 +9325,11 @@ class pyClient(Packager):
             Output_01 state FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, state = self.CLIENT_pkg_roic_GetFPARampState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, state)
     # End of GetFPARampState()
 
@@ -9341,11 +9341,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_roic_GetSensorADC1()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSensorADC1()
 
@@ -9357,11 +9357,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_roic_GetSensorADC2()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSensorADC2()
 
@@ -9373,11 +9373,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_roic_SetFPATempOffset(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFPATempOffset()
 
@@ -9389,11 +9389,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<INT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_roic_GetFPATempOffset()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFPATempOffset()
 
@@ -9405,11 +9405,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_roic_SetFPATempMode(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFPATempMode()
 
@@ -9421,11 +9421,11 @@ class pyClient(Packager):
             Output_01 data FLR_ROIC_TEMP_MODE_E <<FLR_ROIC_TEMP_MODE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_roic_GetFPATempMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFPATempMode()
 
@@ -9437,11 +9437,11 @@ class pyClient(Packager):
             Output_01 table FLR_ROIC_FPATEMP_TABLE_T <<FLR_ROIC_FPATEMP_TABLE_T>>
         '''
         returnCode, table = self.CLIENT_pkg_roic_GetFPATempTable()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, table)
     # End of GetFPATempTable()
 
@@ -9453,11 +9453,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_roic_SetFPATempValue(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFPATempValue()
 
@@ -9469,11 +9469,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_roic_GetFPATempValue()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFPATempValue()
 
@@ -9485,11 +9485,11 @@ class pyClient(Packager):
             Output_01 preambleError <class 'int'> <<UINT_32>>
         '''
         returnCode, preambleError = self.CLIENT_pkg_roic_GetPreambleError()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, preambleError)
     # End of GetPreambleError()
 
@@ -9501,11 +9501,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_roic_InducePreambleError(everyNthFrame)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of InducePreambleError()
 
@@ -9517,11 +9517,11 @@ class pyClient(Packager):
             Output_01 roicStarted FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, roicStarted = self.CLIENT_pkg_roic_GetRoicStarted()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, roicStarted)
     # End of GetRoicStarted()
 
@@ -9533,11 +9533,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_roic_SetFrameSkip(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFrameSkip()
 
@@ -9549,11 +9549,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_roic_GetFrameSkip()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFrameSkip()
 
@@ -9564,11 +9564,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_roic_SetFrameOneShot()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFrameOneShot()
 
@@ -9580,11 +9580,11 @@ class pyClient(Packager):
             Output_01 zoom <class 'int'> <<UINT_32>>
         '''
         returnCode, zoom = self.CLIENT_pkg_scaler_GetMaxZoom()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, zoom)
     # End of GetMaxZoom()
 
@@ -9596,11 +9596,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scaler_SetZoom(zoomParams)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetZoom()
 
@@ -9612,11 +9612,11 @@ class pyClient(Packager):
             Output_01 zoomParams FLR_SCALER_ZOOM_PARAMS_T <<FLR_SCALER_ZOOM_PARAMS_T>>
         '''
         returnCode, zoomParams = self.CLIENT_pkg_scaler_GetZoom()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, zoomParams)
     # End of GetZoom()
 
@@ -9635,11 +9635,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scaler_SetFractionalZoom(zoomNumerator, zoomDenominator, zoomXCenter, zoomYCenter, inChangeEnable, zoomOutXCenter, zoomOutYCenter, outChangeEnable)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFractionalZoom()
 
@@ -9657,11 +9657,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scaler_SetIndexZoom(zoomIndex, zoomXCenter, zoomYCenter, inChangeEnable, zoomOutXCenter, zoomOutYCenter, outChangeEnable)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetIndexZoom()
 
@@ -9673,11 +9673,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetEnableState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetEnableState()
 
@@ -9689,11 +9689,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetEnableState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetEnableState()
 
@@ -9705,11 +9705,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetThColSum(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetThColSum()
 
@@ -9721,11 +9721,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetThColSum()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetThColSum()
 
@@ -9737,11 +9737,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetThPixel(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetThPixel()
 
@@ -9753,11 +9753,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetThPixel()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetThPixel()
 
@@ -9769,11 +9769,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetMaxCorr(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMaxCorr()
 
@@ -9785,11 +9785,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetMaxCorr()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMaxCorr()
 
@@ -9801,11 +9801,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetThPixelApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetThPixelApplied()
 
@@ -9817,11 +9817,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetMaxCorrApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMaxCorrApplied()
 
@@ -9833,11 +9833,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetThColSumSafe(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetThColSumSafe()
 
@@ -9849,11 +9849,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetThColSumSafe()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetThColSumSafe()
 
@@ -9865,11 +9865,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetThPixelSafe(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetThPixelSafe()
 
@@ -9881,11 +9881,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetThPixelSafe()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetThPixelSafe()
 
@@ -9897,11 +9897,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetMaxCorrSafe(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMaxCorrSafe()
 
@@ -9913,11 +9913,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetMaxCorrSafe()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMaxCorrSafe()
 
@@ -9929,11 +9929,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetCorrectionMethod(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetCorrectionMethod()
 
@@ -9945,11 +9945,11 @@ class pyClient(Packager):
             Output_01 data FLR_SCNR_CORR_SELECT_E <<FLR_SCNR_CORR_SELECT_E>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetCorrectionMethod()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetCorrectionMethod()
 
@@ -9961,11 +9961,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetStdThreshold(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetStdThreshold()
 
@@ -9977,11 +9977,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetStdThreshold()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetStdThreshold()
 
@@ -9993,11 +9993,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetNFrames(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetNFrames()
 
@@ -10009,11 +10009,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetNFrames()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetNFrames()
 
@@ -10025,11 +10025,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetResetDesired(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetResetDesired()
 
@@ -10041,11 +10041,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetResetDesired()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetResetDesired()
 
@@ -10057,11 +10057,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetM_modeOnly(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetM_modeOnly()
 
@@ -10073,11 +10073,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetM_modeOnly()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetM_modeOnly()
 
@@ -10089,11 +10089,11 @@ class pyClient(Packager):
             Output_01 data FLR_SCNR_MODE_E <<FLR_SCNR_MODE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMode()
 
@@ -10105,11 +10105,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetSpecklesEnableState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSpecklesEnableState()
 
@@ -10121,11 +10121,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetSpecklesEnableState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSpecklesEnableState()
 
@@ -10137,11 +10137,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetSpecklesThreshold(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSpecklesThreshold()
 
@@ -10153,11 +10153,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetSpecklesThreshold()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSpecklesThreshold()
 
@@ -10169,11 +10169,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetSpecklesRatio(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSpecklesRatio()
 
@@ -10185,11 +10185,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetSpecklesRatio()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSpecklesRatio()
 
@@ -10201,11 +10201,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetSpecklesDF(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSpecklesDF()
 
@@ -10217,11 +10217,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetSpecklesDF()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSpecklesDF()
 
@@ -10233,11 +10233,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetSpecklesDiffsBufferAddr()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSpecklesDiffsBufferAddr()
 
@@ -10249,11 +10249,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetSpecklesOffsBufferAddr()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSpecklesOffsBufferAddr()
 
@@ -10265,11 +10265,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_scnr_SetSpecklesResetDesired(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSpecklesResetDesired()
 
@@ -10281,11 +10281,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_scnr_GetSpecklesResetDesired()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSpecklesResetDesired()
 
@@ -10297,11 +10297,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_sffc_GetScaleFactor()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetScaleFactor()
 
@@ -10313,11 +10313,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_sffc_GetDeltaTempLinearCoeff()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDeltaTempLinearCoeff()
 
@@ -10329,11 +10329,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_sffc_SetDeltaTempLinearCoeff(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDeltaTempLinearCoeff()
 
@@ -10345,11 +10345,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_sffc_GetDeltaTempOffsetCoeff()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDeltaTempOffsetCoeff()
 
@@ -10361,11 +10361,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_sffc_SetDeltaTempOffsetCoeff(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDeltaTempOffsetCoeff()
 
@@ -10377,11 +10377,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_sffc_GetFpaTempLinearCoeff()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFpaTempLinearCoeff()
 
@@ -10393,11 +10393,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_sffc_SetFpaTempLinearCoeff(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFpaTempLinearCoeff()
 
@@ -10409,11 +10409,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_sffc_GetFpaTempOffsetCoeff()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFpaTempOffsetCoeff()
 
@@ -10425,11 +10425,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_sffc_SetFpaTempOffsetCoeff(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFpaTempOffsetCoeff()
 
@@ -10441,11 +10441,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_sffc_GetDeltaTempTimeLimitInSecs()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDeltaTempTimeLimitInSecs()
 
@@ -10457,11 +10457,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_sffc_SetDeltaTempTimeLimitInSecs(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDeltaTempTimeLimitInSecs()
 
@@ -10473,11 +10473,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetEnableState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetEnableState()
 
@@ -10489,11 +10489,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_spnr_GetEnableState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetEnableState()
 
@@ -10505,11 +10505,11 @@ class pyClient(Packager):
             Output_01 data FLR_SPNR_STATE_E <<FLR_SPNR_STATE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_spnr_GetState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetState()
 
@@ -10521,11 +10521,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetFrameDelay(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFrameDelay()
 
@@ -10537,11 +10537,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_spnr_GetFrameDelay()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFrameDelay()
 
@@ -10553,11 +10553,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetSF(sf)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSF()
 
@@ -10569,11 +10569,11 @@ class pyClient(Packager):
             Output_01 sf <class 'float'> <<FLOAT>>
         '''
         returnCode, sf = self.CLIENT_pkg_spnr_GetSF()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, sf)
     # End of GetSF()
 
@@ -10585,11 +10585,11 @@ class pyClient(Packager):
             Output_01 sf <class 'float'> <<FLOAT>>
         '''
         returnCode, sf = self.CLIENT_pkg_spnr_GetSFApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, sf)
     # End of GetSFApplied()
 
@@ -10601,11 +10601,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetPSDKernel(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetPSDKernel()
 
@@ -10617,11 +10617,11 @@ class pyClient(Packager):
             Output_01 data FLR_SPNR_PSD_KERNEL_T <<FLR_SPNR_PSD_KERNEL_T>>
         '''
         returnCode, data = self.CLIENT_pkg_spnr_GetPSDKernel()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetPSDKernel()
 
@@ -10633,11 +10633,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetSFMin(sfmin)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSFMin()
 
@@ -10649,11 +10649,11 @@ class pyClient(Packager):
             Output_01 sfmin <class 'float'> <<FLOAT>>
         '''
         returnCode, sfmin = self.CLIENT_pkg_spnr_GetSFMin()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, sfmin)
     # End of GetSFMin()
 
@@ -10665,11 +10665,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetSFMax(sfmax)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSFMax()
 
@@ -10681,11 +10681,11 @@ class pyClient(Packager):
             Output_01 sfmax <class 'float'> <<FLOAT>>
         '''
         returnCode, sfmax = self.CLIENT_pkg_spnr_GetSFMax()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, sfmax)
     # End of GetSFMax()
 
@@ -10697,11 +10697,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetDFMin(dfmin)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDFMin()
 
@@ -10713,11 +10713,11 @@ class pyClient(Packager):
             Output_01 dfmin <class 'float'> <<FLOAT>>
         '''
         returnCode, dfmin = self.CLIENT_pkg_spnr_GetDFMin()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, dfmin)
     # End of GetDFMin()
 
@@ -10729,11 +10729,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetDFMax(dfmax)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDFMax()
 
@@ -10745,11 +10745,11 @@ class pyClient(Packager):
             Output_01 dfmax <class 'float'> <<FLOAT>>
         '''
         returnCode, dfmax = self.CLIENT_pkg_spnr_GetDFMax()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, dfmax)
     # End of GetDFMax()
 
@@ -10761,11 +10761,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetNormTarget(normTarget)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetNormTarget()
 
@@ -10777,11 +10777,11 @@ class pyClient(Packager):
             Output_01 normTarget <class 'float'> <<FLOAT>>
         '''
         returnCode, normTarget = self.CLIENT_pkg_spnr_GetNormTarget()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, normTarget)
     # End of GetNormTarget()
 
@@ -10793,11 +10793,11 @@ class pyClient(Packager):
             Output_01 normTargetApplied <class 'float'> <<FLOAT>>
         '''
         returnCode, normTargetApplied = self.CLIENT_pkg_spnr_GetNormTargetApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, normTargetApplied)
     # End of GetNormTargetApplied()
 
@@ -10809,11 +10809,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetThPix(th_pix)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetThPix()
 
@@ -10825,11 +10825,11 @@ class pyClient(Packager):
             Output_01 th_pix <class 'int'> <<UINT_16>>
         '''
         returnCode, th_pix = self.CLIENT_pkg_spnr_GetThPix()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, th_pix)
     # End of GetThPix()
 
@@ -10841,11 +10841,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetThPixSum(th_pixSum)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetThPixSum()
 
@@ -10857,11 +10857,11 @@ class pyClient(Packager):
             Output_01 th_pixSum <class 'int'> <<UINT_16>>
         '''
         returnCode, th_pixSum = self.CLIENT_pkg_spnr_GetThPixSum()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, th_pixSum)
     # End of GetThPixSum()
 
@@ -10873,11 +10873,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetMaxcorr(maxcorr)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMaxcorr()
 
@@ -10889,11 +10889,11 @@ class pyClient(Packager):
             Output_01 maxcorr <class 'int'> <<UINT_16>>
         '''
         returnCode, maxcorr = self.CLIENT_pkg_spnr_GetMaxcorr()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, maxcorr)
     # End of GetMaxcorr()
 
@@ -10905,11 +10905,11 @@ class pyClient(Packager):
             Output_01 data FLR_SPNR_ALGORITHM_E <<FLR_SPNR_ALGORITHM_E>>
         '''
         returnCode, data = self.CLIENT_pkg_spnr_GetAlgorithm()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetAlgorithm()
 
@@ -10921,11 +10921,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetAlgorithmDesired(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetAlgorithmDesired()
 
@@ -10937,11 +10937,11 @@ class pyClient(Packager):
             Output_01 data FLR_SPNR_ALGORITHM_E <<FLR_SPNR_ALGORITHM_E>>
         '''
         returnCode, data = self.CLIENT_pkg_spnr_GetAlgorithmDesired()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetAlgorithmDesired()
 
@@ -10953,11 +10953,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetDFFast(dffast)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDFFast()
 
@@ -10969,11 +10969,11 @@ class pyClient(Packager):
             Output_01 dffast <class 'float'> <<FLOAT>>
         '''
         returnCode, dffast = self.CLIENT_pkg_spnr_GetDFFast()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, dffast)
     # End of GetDFFast()
 
@@ -10985,11 +10985,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetDFSlow(dfslow)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDFSlow()
 
@@ -11001,11 +11001,11 @@ class pyClient(Packager):
             Output_01 dfslow <class 'float'> <<FLOAT>>
         '''
         returnCode, dfslow = self.CLIENT_pkg_spnr_GetDFSlow()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, dfslow)
     # End of GetDFSlow()
 
@@ -11017,11 +11017,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetSensitivityThreshold(threshold)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSensitivityThreshold()
 
@@ -11033,11 +11033,11 @@ class pyClient(Packager):
             Output_01 threshold <class 'float'> <<FLOAT>>
         '''
         returnCode, threshold = self.CLIENT_pkg_spnr_GetSensitivityThreshold()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, threshold)
     # End of GetSensitivityThreshold()
 
@@ -11049,11 +11049,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spnr_SetReset(resetType)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetReset()
 
@@ -11065,11 +11065,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spotMeter_SetEnable(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetEnable()
 
@@ -11081,11 +11081,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_spotMeter_GetEnable()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetEnable()
 
@@ -11098,11 +11098,11 @@ class pyClient(Packager):
             Output_02 height <class 'int'> <<UINT_16>>
         '''
         returnCode, width, height = self.CLIENT_pkg_spotMeter_GetRoiMaxSize()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, width, height)
     # End of GetRoiMaxSize()
 
@@ -11114,11 +11114,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spotMeter_SetRoi(roi)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetRoi()
 
@@ -11130,11 +11130,11 @@ class pyClient(Packager):
             Output_01 roi FLR_ROI_T <<FLR_ROI_T>>
         '''
         returnCode, roi = self.CLIENT_pkg_spotMeter_GetRoi()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, roi)
     # End of GetRoi()
 
@@ -11149,11 +11149,11 @@ class pyClient(Packager):
             Output_04 max FLR_SPOTMETER_SPOT_PARAM_T <<FLR_SPOTMETER_SPOT_PARAM_T>>
         '''
         returnCode, mean, deviation, min, max = self.CLIENT_pkg_spotMeter_GetSpotStats()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None, None)
-        
+
         return ( returnCode, mean, deviation, min, max)
     # End of GetSpotStats()
 
@@ -11165,11 +11165,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_spotMeter_SetStatsMode(mode)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetStatsMode()
 
@@ -11181,11 +11181,11 @@ class pyClient(Packager):
             Output_01 mode FLR_SPOTMETER_STATS_TEMP_MODE_E <<FLR_SPOTMETER_STATS_TEMP_MODE_E>>
         '''
         returnCode, mode = self.CLIENT_pkg_spotMeter_GetStatsMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, mode)
     # End of GetStatsMode()
 
@@ -11200,11 +11200,11 @@ class pyClient(Packager):
             Output_04 max FLR_SPOTMETER_STAT_PARAM_TEMP_T <<FLR_SPOTMETER_STAT_PARAM_TEMP_T>>
         '''
         returnCode, mean, deviation, min, max = self.CLIENT_pkg_spotMeter_GetTempStats()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None, None)
-        
+
         return ( returnCode, mean, deviation, min, max)
     # End of GetTempStats()
 
@@ -11216,11 +11216,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_srnr_SetEnableState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetEnableState()
 
@@ -11232,11 +11232,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_srnr_GetEnableState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetEnableState()
 
@@ -11248,11 +11248,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_srnr_SetThRowSum(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetThRowSum()
 
@@ -11264,11 +11264,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_srnr_GetThRowSum()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetThRowSum()
 
@@ -11280,11 +11280,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_srnr_SetThPixel(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetThPixel()
 
@@ -11296,11 +11296,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_srnr_GetThPixel()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetThPixel()
 
@@ -11312,11 +11312,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_srnr_SetMaxCorr(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMaxCorr()
 
@@ -11328,11 +11328,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_srnr_GetMaxCorr()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMaxCorr()
 
@@ -11344,11 +11344,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_srnr_GetThPixelApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetThPixelApplied()
 
@@ -11360,11 +11360,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_srnr_GetMaxCorrApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMaxCorrApplied()
 
@@ -11376,11 +11376,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_SetEnable(draw_symbols)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetEnable()
 
@@ -11396,11 +11396,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateBitmap(ID, pos_X, pos_Y, width, height)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateBitmap()
 
@@ -11414,11 +11414,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_SendData(ID, size, text)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SendData()
 
@@ -11437,11 +11437,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateArc(ID, pos_X, pos_Y, width, height, start_angle, end_angle, color)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateArc()
 
@@ -11462,11 +11462,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateText(ID, pos_X, pos_Y, width, height, font, size, alignment, color, text)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateText()
 
@@ -11480,11 +11480,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_MoveSprite(ID, pos_X, pos_Y)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of MoveSprite()
 
@@ -11497,11 +11497,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_AddToGroup(ID, group_ID)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of AddToGroup()
 
@@ -11514,11 +11514,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_RemoveFromGroup(ID, group_ID)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of RemoveFromGroup()
 
@@ -11531,11 +11531,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_UpdateAndShow(ID, visible)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of UpdateAndShow()
 
@@ -11548,11 +11548,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_UpdateAndShowGroup(group_ID, visible)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of UpdateAndShowGroup()
 
@@ -11564,11 +11564,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_Delete(ID)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of Delete()
 
@@ -11580,11 +11580,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_DeleteGroup(group_ID)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of DeleteGroup()
 
@@ -11601,11 +11601,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateFilledRectangle(ID, pos_X, pos_Y, width, height, color)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateFilledRectangle()
 
@@ -11622,11 +11622,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateOutlinedRectangle(ID, pos_X, pos_Y, width, height, color)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateOutlinedRectangle()
 
@@ -11641,11 +11641,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateBitmapFromPng(ID, pos_X, pos_Y, size)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateBitmapFromPng()
 
@@ -11661,11 +11661,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateCompressedBitmap(ID, pos_X, pos_Y, width, height)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateCompressedBitmap()
 
@@ -11680,11 +11680,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateBitmapFromPngFile(ID, pos_X, pos_Y, path)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateBitmapFromPngFile()
 
@@ -11700,11 +11700,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateBitmapFromFile(ID, pos_X, pos_Y, path, imageType)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateBitmapFromFile()
 
@@ -11716,11 +11716,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_ResetWritePosition(ID)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of ResetWritePosition()
 
@@ -11734,11 +11734,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_MoveByOffset(ID, off_X, off_Y)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of MoveByOffset()
 
@@ -11752,11 +11752,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_MoveGroupByOffset(ID, off_X, off_Y)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of MoveGroupByOffset()
 
@@ -11773,11 +11773,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateFilledEllipse(ID, pos_X, pos_Y, width, height, color)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateFilledEllipse()
 
@@ -11794,11 +11794,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateLine(ID, pos_X, pos_Y, pos_X2, pos_Y2, color)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateLine()
 
@@ -11811,11 +11811,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_SetZorder(ID, zorder)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetZorder()
 
@@ -11826,11 +11826,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_SaveConfiguration()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SaveConfiguration()
 
@@ -11841,11 +11841,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_ReloadConfiguration()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of ReloadConfiguration()
 
@@ -11857,11 +11857,11 @@ class pyClient(Packager):
             Output_01 draw_symbols FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, draw_symbols = self.CLIENT_pkg_symbology_GetEnable()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, draw_symbols)
     # End of GetEnable()
 
@@ -11874,11 +11874,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_SetClonesNumber(ID, numberOfClones)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetClonesNumber()
 
@@ -11893,11 +11893,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_MoveCloneByOffset(ID, cloneID, pos_X, pos_Y)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of MoveCloneByOffset()
 
@@ -11912,11 +11912,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_MoveCloneSprite(ID, cloneID, pos_X, pos_Y)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of MoveCloneSprite()
 
@@ -11928,11 +11928,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_SetTransformation(transformation)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTransformation()
 
@@ -11943,11 +11943,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_UpdateAllVisible()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of UpdateAllVisible()
 
@@ -11962,11 +11962,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_SetSizeAndScalingMode(ID, width, height, scalingMode)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSizeAndScalingMode()
 
@@ -11986,11 +11986,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateLineHVT(ID, pos_X, pos_Y, pos_X2, pos_Y2, color1, color2, dashLen, thickness)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateLineHVT()
 
@@ -12013,11 +12013,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateTextHVT(ID, pos_X, pos_Y, width, height, font, size, alignment, color1, color2, dashLen, text)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateTextHVT()
 
@@ -12039,11 +12039,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateTextBg(ID, pos_X, pos_Y, width, height, font, size, alignment, color, bgColor, text)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateTextBg()
 
@@ -12062,11 +12062,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CreateScaledBitmapFromFile(ID, pos_X, pos_Y, width, height, scalingMode, path, imageType)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CreateScaledBitmapFromFile()
 
@@ -12080,11 +12080,11 @@ class pyClient(Packager):
             Output_02 pos_Y <class 'int'> <<INT_16>>
         '''
         returnCode, pos_X, pos_Y = self.CLIENT_pkg_symbology_GetLocation(ID)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, pos_X, pos_Y)
     # End of GetLocation()
 
@@ -12098,11 +12098,11 @@ class pyClient(Packager):
             Output_02 height <class 'int'> <<INT_16>>
         '''
         returnCode, width, height = self.CLIENT_pkg_symbology_GetSize(ID)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, width, height)
     # End of GetSize()
 
@@ -12115,11 +12115,11 @@ class pyClient(Packager):
             Output_01 zorder <class 'int'> <<UCHAR>>
         '''
         returnCode, zorder = self.CLIENT_pkg_symbology_GetZorder(ID)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, zorder)
     # End of GetZorder()
 
@@ -12132,11 +12132,11 @@ class pyClient(Packager):
             Output_01 color <class 'int'> <<UINT_32>>
         '''
         returnCode, color = self.CLIENT_pkg_symbology_GetColor(ID)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, color)
     # End of GetColor()
 
@@ -12149,11 +12149,11 @@ class pyClient(Packager):
             Output_01 type FLR_SYMBOLOGY_TYPE_E <<FLR_SYMBOLOGY_TYPE_E>>
         '''
         returnCode, type = self.CLIENT_pkg_symbology_GetType(ID)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, type)
     # End of GetType()
 
@@ -12166,11 +12166,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_symbology_CopySymbol(source, destination)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of CopySymbol()
 
@@ -12183,11 +12183,11 @@ class pyClient(Packager):
             Output_01 size <class 'int'> <<INT_16>>
         '''
         returnCode, size = self.CLIENT_pkg_symbology_GetTextFontSize(ID)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, size)
     # End of GetTextFontSize()
 
@@ -12199,11 +12199,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_sysctrl_SetFreezeState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFreezeState()
 
@@ -12215,11 +12215,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_sysctrl_GetFreezeState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFreezeState()
 
@@ -12231,11 +12231,11 @@ class pyClient(Packager):
             Output_01 frameRate <class 'int'> <<UINT_32>>
         '''
         returnCode, frameRate = self.CLIENT_pkg_sysctrl_GetCameraFrameRate()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, frameRate)
     # End of GetCameraFrameRate()
 
@@ -12247,11 +12247,11 @@ class pyClient(Packager):
             Output_01 uptime <class 'int'> <<UINT_32>>
         '''
         returnCode, uptime = self.CLIENT_pkg_sysctrl_GetUptimeSecs()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, uptime)
     # End of GetUptimeSecs()
 
@@ -12263,11 +12263,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_sysctrl_SetUsbVideoIR16Mode(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetUsbVideoIR16Mode()
 
@@ -12279,11 +12279,11 @@ class pyClient(Packager):
             Output_01 data FLR_SYSCTRL_USBIR16_MODE_E <<FLR_SYSCTRL_USBIR16_MODE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_sysctrl_GetUsbVideoIR16Mode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetUsbVideoIR16Mode()
 
@@ -12295,11 +12295,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_sysctrl_SetOperatingMode(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOperatingMode()
 
@@ -12311,11 +12311,11 @@ class pyClient(Packager):
             Output_01 data FLR_SYSCTRL_OPERATING_MODE_E <<FLR_SYSCTRL_OPERATING_MODE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_sysctrl_GetOperatingMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetOperatingMode()
 
@@ -12327,11 +12327,11 @@ class pyClient(Packager):
             Output_01 data <class 'float'> <<FLOAT>>
         '''
         returnCode, data = self.CLIENT_pkg_sysctrl_GetAvgFpaTempCounts()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetAvgFpaTempCounts()
 
@@ -12343,11 +12343,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_sysctrl_SetFpaTempFrames(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetFpaTempFrames()
 
@@ -12359,11 +12359,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_sysctrl_GetFpaTempFrames()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetFpaTempFrames()
 
@@ -12377,11 +12377,11 @@ class pyClient(Packager):
             Output_03 patch <class 'int'> <<UINT_32>>
         '''
         returnCode, major, minor, patch = self.CLIENT_pkg_sysinfo_GetMonitorSoftwareRev()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None)
-        
+
         return ( returnCode, major, minor, patch)
     # End of GetMonitorSoftwareRev()
 
@@ -12393,11 +12393,11 @@ class pyClient(Packager):
             Output_01 monitorBuildVariant FLR_SYSINFO_MONITOR_BUILD_VARIANT_T <<FLR_SYSINFO_MONITOR_BUILD_VARIANT_T>>
         '''
         returnCode, monitorBuildVariant = self.CLIENT_pkg_sysinfo_GetMonitorBuildVariant()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, monitorBuildVariant)
     # End of GetMonitorBuildVariant()
 
@@ -12409,11 +12409,11 @@ class pyClient(Packager):
             Output_01 name[<class 'int'>] 128 <<UCHAR*128>>
         '''
         returnCode, name = self.CLIENT_pkg_sysinfo_GetProductName()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, name)
     # End of GetProductName()
 
@@ -12425,11 +12425,11 @@ class pyClient(Packager):
             Output_01 number[<class 'int'>] 128 <<UCHAR*128>>
         '''
         returnCode, number = self.CLIENT_pkg_sysinfo_GetCameraSN()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, number)
     # End of GetCameraSN()
 
@@ -12441,11 +12441,11 @@ class pyClient(Packager):
             Output_01 bootSwLocation <class 'int'> <<UINT_32>>
         '''
         returnCode, bootSwLocation = self.CLIENT_pkg_sysinfo_GetBootLocation()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, bootSwLocation)
     # End of GetBootLocation()
 
@@ -12457,11 +12457,11 @@ class pyClient(Packager):
             Output_01 swConfigID FLR_SYSINFO_SW_CONFIG_ID_E <<FLR_SYSINFO_SW_CONFIG_ID_E>>
         '''
         returnCode, swConfigID = self.CLIENT_pkg_sysinfo_GetSwConfigID()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, swConfigID)
     # End of GetSwConfigID()
 
@@ -12473,11 +12473,11 @@ class pyClient(Packager):
             Output_01 swPermissions FLR_SYSINFO_SW_PERMISSIONS_E <<FLR_SYSINFO_SW_PERMISSIONS_E>>
         '''
         returnCode, swPermissions = self.CLIENT_pkg_sysinfo_GetSwPermissions()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, swPermissions)
     # End of GetSwPermissions()
 
@@ -12489,11 +12489,11 @@ class pyClient(Packager):
             Output_01 is9HzBuild <class 'int'> <<UINT_32>>
         '''
         returnCode, is9HzBuild = self.CLIENT_pkg_sysinfo_GetIs9HzBuild()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, is9HzBuild)
     # End of GetIs9HzBuild()
 
@@ -12507,11 +12507,11 @@ class pyClient(Packager):
             Output_03 patch <class 'int'> <<UINT_32>>
         '''
         returnCode, major, minor, patch = self.CLIENT_pkg_sysinfo_GetProductVersion()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None)
-        
+
         return ( returnCode, major, minor, patch)
     # End of GetProductVersion()
 
@@ -12525,11 +12525,11 @@ class pyClient(Packager):
             Output_03 patch <class 'int'> <<UINT_32>>
         '''
         returnCode, major, minor, patch = self.CLIENT_pkg_sysinfo_GetMonitorProductRev()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None)
-        
+
         return ( returnCode, major, minor, patch)
     # End of GetMonitorProductRev()
 
@@ -12541,11 +12541,11 @@ class pyClient(Packager):
             Output_01 revision <class 'int'> <<UINT_16>>
         '''
         returnCode, revision = self.CLIENT_pkg_sysinfo_GetOpticalRevision()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, revision)
     # End of GetOpticalRevision()
 
@@ -12557,11 +12557,11 @@ class pyClient(Packager):
             Output_01 revision <class 'int'> <<UINT_16>>
         '''
         returnCode, revision = self.CLIENT_pkg_sysinfo_GetSensorRevision()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, revision)
     # End of GetSensorRevision()
 
@@ -12573,11 +12573,11 @@ class pyClient(Packager):
             Output_01 number[<class 'int'>] 128 <<UCHAR*128>>
         '''
         returnCode, number = self.CLIENT_pkg_sysinfo_GetProbeTipSN()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, number)
     # End of GetProbeTipSN()
 
@@ -12589,11 +12589,11 @@ class pyClient(Packager):
             Output_01 revision <class 'int'> <<UINT_16>>
         '''
         returnCode, revision = self.CLIENT_pkg_sysinfo_GetMechanicalRevision()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, revision)
     # End of GetMechanicalRevision()
 
@@ -12605,11 +12605,11 @@ class pyClient(Packager):
             Output_01 type FLR_SYSINFO_PROBE_TIP_TYPE <<FLR_SYSINFO_PROBE_TIP_TYPE>>
         '''
         returnCode, type = self.CLIENT_pkg_sysinfo_GetProbeTipType()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, type)
     # End of GetProbeTipType()
 
@@ -12623,11 +12623,11 @@ class pyClient(Packager):
             Output_02 id_type FLR_SYSTEMSYMBOLS_ID_TYPE_E <<FLR_SYSTEMSYMBOLS_ID_TYPE_E>>
         '''
         returnCode, id, id_type = self.CLIENT_pkg_systemSymbols_GetID(symbol)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None)
-        
+
         return ( returnCode, id, id_type)
     # End of GetID()
 
@@ -12641,11 +12641,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_systemSymbols_SetID(symbol, id, id_type)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetID()
 
@@ -12658,11 +12658,11 @@ class pyClient(Packager):
             Output_01 enabled FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, enabled = self.CLIENT_pkg_systemSymbols_GetEnable(symbol)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, enabled)
     # End of GetEnable()
 
@@ -12675,11 +12675,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_systemSymbols_SetEnable(symbol, enabled)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetEnable()
 
@@ -12691,11 +12691,11 @@ class pyClient(Packager):
             Output_01 config FLR_SYSTEMSYMBOLS_SPOTCONFIG_T <<FLR_SYSTEMSYMBOLS_SPOTCONFIG_T>>
         '''
         returnCode, config = self.CLIENT_pkg_systemSymbols_GetSpotConfig()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, config)
     # End of GetSpotConfig()
 
@@ -12707,11 +12707,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_systemSymbols_SetSpotConfig(config)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSpotConfig()
 
@@ -12723,11 +12723,11 @@ class pyClient(Packager):
             Output_01 config FLR_SYSTEMSYMBOLS_ISOCONFIG_T <<FLR_SYSTEMSYMBOLS_ISOCONFIG_T>>
         '''
         returnCode, config = self.CLIENT_pkg_systemSymbols_GetIsoConfig()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, config)
     # End of GetIsoConfig()
 
@@ -12739,11 +12739,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_systemSymbols_SetIsoConfig(config)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetIsoConfig()
 
@@ -12757,11 +12757,11 @@ class pyClient(Packager):
             Output_03 unit FLR_TEMPERATURE_UNIT_E <<FLR_TEMPERATURE_UNIT_E>>
         '''
         returnCode, lowGainConfig, highGainConfig, unit = self.CLIENT_pkg_systemSymbols_GetBarConfig()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None, None, None)
-        
+
         return ( returnCode, lowGainConfig, highGainConfig, unit)
     # End of GetBarConfig()
 
@@ -12775,11 +12775,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_systemSymbols_SetBarConfig(lowGainConfig, highGainConfig, unit)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetBarConfig()
 
@@ -12791,11 +12791,11 @@ class pyClient(Packager):
             Output_01 config FLR_SYSTEMSYMBOLS_SPOTCONFIG_ID_T <<FLR_SYSTEMSYMBOLS_SPOTCONFIG_ID_T>>
         '''
         returnCode, config = self.CLIENT_pkg_systemSymbols_GetSpotConfigIds()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, config)
     # End of GetSpotConfigIds()
 
@@ -12807,11 +12807,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_systemSymbols_SetSpotConfigIds(config)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSpotConfigIds()
 
@@ -12823,11 +12823,11 @@ class pyClient(Packager):
             Output_01 config FLR_SYSTEMSYMBOLS_ISOCONFIG_ID_T <<FLR_SYSTEMSYMBOLS_ISOCONFIG_ID_T>>
         '''
         returnCode, config = self.CLIENT_pkg_systemSymbols_GetIsoConfigIds()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, config)
     # End of GetIsoConfigIds()
 
@@ -12839,11 +12839,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_systemSymbols_SetIsoConfigIds(config)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetIsoConfigIds()
 
@@ -12855,11 +12855,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_telemetry_SetState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetState()
 
@@ -12871,11 +12871,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_telemetry_GetState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetState()
 
@@ -12887,11 +12887,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_telemetry_SetLocation(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetLocation()
 
@@ -12903,11 +12903,11 @@ class pyClient(Packager):
             Output_01 data FLR_TELEMETRY_LOC_E <<FLR_TELEMETRY_LOC_E>>
         '''
         returnCode, data = self.CLIENT_pkg_telemetry_GetLocation()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetLocation()
 
@@ -12919,11 +12919,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_telemetry_SetPacking(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetPacking()
 
@@ -12935,11 +12935,11 @@ class pyClient(Packager):
             Output_01 data FLR_TELEMETRY_PACKING_E <<FLR_TELEMETRY_PACKING_E>>
         '''
         returnCode, data = self.CLIENT_pkg_telemetry_GetPacking()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetPacking()
 
@@ -12951,11 +12951,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_telemetry_SetOrder(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetOrder()
 
@@ -12967,11 +12967,11 @@ class pyClient(Packager):
             Output_01 data FLR_TELEMETRY_ORDER_E <<FLR_TELEMETRY_ORDER_E>>
         '''
         returnCode, data = self.CLIENT_pkg_telemetry_GetOrder()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetOrder()
 
@@ -12983,11 +12983,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_telemetry_SetPackingVC1(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetPackingVC1()
 
@@ -12999,11 +12999,11 @@ class pyClient(Packager):
             Output_01 data FLR_TELEMETRY_PACKING_E <<FLR_TELEMETRY_PACKING_E>>
         '''
         returnCode, data = self.CLIENT_pkg_telemetry_GetPackingVC1()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetPackingVC1()
 
@@ -13015,11 +13015,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_telemetry_SetMipiEmbeddedDataTag(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMipiEmbeddedDataTag()
 
@@ -13031,11 +13031,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_telemetry_GetMipiEmbeddedDataTag()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMipiEmbeddedDataTag()
 
@@ -13048,11 +13048,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_testRamp_SetType(index, data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetType()
 
@@ -13065,11 +13065,11 @@ class pyClient(Packager):
             Output_01 data FLR_TESTRAMP_TYPE_E <<FLR_TESTRAMP_TYPE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_testRamp_GetType(index)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetType()
 
@@ -13082,11 +13082,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_testRamp_SetSettings(index, data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetSettings()
 
@@ -13099,11 +13099,11 @@ class pyClient(Packager):
             Output_01 data FLR_TESTRAMP_SETTINGS_T <<FLR_TESTRAMP_SETTINGS_T>>
         '''
         returnCode, data = self.CLIENT_pkg_testRamp_GetSettings(index)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetSettings()
 
@@ -13115,11 +13115,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_testRamp_SetMotionState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMotionState()
 
@@ -13131,11 +13131,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_testRamp_GetMotionState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMotionState()
 
@@ -13147,11 +13147,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_testRamp_SetIndex(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetIndex()
 
@@ -13163,11 +13163,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UCHAR>>
         '''
         returnCode, data = self.CLIENT_pkg_testRamp_GetIndex()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetIndex()
 
@@ -13179,11 +13179,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UCHAR>>
         '''
         returnCode, data = self.CLIENT_pkg_testRamp_GetMaxIndex()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMaxIndex()
 
@@ -13195,11 +13195,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_testRamp_SetPN9ContinuousMode(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetPN9ContinuousMode()
 
@@ -13211,11 +13211,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_testRamp_GetPN9ContinuousMode()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetPN9ContinuousMode()
 
@@ -13227,11 +13227,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_testRamp_SetAnimationSettings(settings)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetAnimationSettings()
 
@@ -13243,11 +13243,11 @@ class pyClient(Packager):
             Output_01 settings FLR_TESTRAMP_ANIMATION_SETTINGS_T <<FLR_TESTRAMP_ANIMATION_SETTINGS_T>>
         '''
         returnCode, settings = self.CLIENT_pkg_testRamp_GetAnimationSettings()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, settings)
     # End of GetAnimationSettings()
 
@@ -13259,11 +13259,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_tf_SetEnableState(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetEnableState()
 
@@ -13275,11 +13275,11 @@ class pyClient(Packager):
             Output_01 data FLR_ENABLE_E <<FLR_ENABLE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_tf_GetEnableState()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetEnableState()
 
@@ -13291,11 +13291,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_tf_SetDelta_nf(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetDelta_nf()
 
@@ -13307,11 +13307,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_tf_GetDelta_nf()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDelta_nf()
 
@@ -13323,11 +13323,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_tf_SetTHDeltaMotion(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTHDeltaMotion()
 
@@ -13339,11 +13339,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_tf_GetTHDeltaMotion()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTHDeltaMotion()
 
@@ -13355,11 +13355,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_tf_SetWLut(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetWLut()
 
@@ -13371,11 +13371,11 @@ class pyClient(Packager):
             Output_01 data FLR_TF_WLUT_T <<FLR_TF_WLUT_T>>
         '''
         returnCode, data = self.CLIENT_pkg_tf_GetWLut()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetWLut()
 
@@ -13387,11 +13387,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_tf_GetMotionCount()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMotionCount()
 
@@ -13403,11 +13403,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_tf_SetMotionThreshold(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetMotionThreshold()
 
@@ -13419,11 +13419,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_32>>
         '''
         returnCode, data = self.CLIENT_pkg_tf_GetMotionThreshold()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetMotionThreshold()
 
@@ -13435,11 +13435,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_tf_GetDelta_nfApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetDelta_nfApplied()
 
@@ -13451,11 +13451,11 @@ class pyClient(Packager):
             Output_01 data <class 'int'> <<UINT_16>>
         '''
         returnCode, data = self.CLIENT_pkg_tf_GetTHDeltaMotionApplied()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTHDeltaMotionApplied()
 
@@ -13467,11 +13467,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_tf_SetTempSignalCompFactorLut(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetTempSignalCompFactorLut()
 
@@ -13483,11 +13483,11 @@ class pyClient(Packager):
             Output_01 data FLR_TF_TEMP_SIGNAL_COMP_FACTOR_LUT_T <<FLR_TF_TEMP_SIGNAL_COMP_FACTOR_LUT_T>>
         '''
         returnCode, data = self.CLIENT_pkg_tf_GetTempSignalCompFactorLut()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetTempSignalCompFactorLut()
 
@@ -13499,11 +13499,11 @@ class pyClient(Packager):
             Output_01 rnf <class 'int'> <<UINT_16>>
         '''
         returnCode, rnf = self.CLIENT_pkg_tf_GetRnf()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, rnf)
     # End of GetRnf()
 
@@ -13515,11 +13515,11 @@ class pyClient(Packager):
             Output_00 returnCode <FLR_RESULT>
         '''
         returnCode = self.CLIENT_pkg_uart_SetStartupBaudRate(data)
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode)
-        
+
         return ( returnCode)
     # End of SetStartupBaudRate()
 
@@ -13531,12 +13531,10 @@ class pyClient(Packager):
             Output_01 data FLR_UART_STARTUP_BAUDRATE_E <<FLR_UART_STARTUP_BAUDRATE_E>>
         '''
         returnCode, data = self.CLIENT_pkg_uart_GetStartupBaudRate()
-        
+
         # Check for any errorcode
         if (returnCode.value):
             return ( returnCode, None)
-        
+
         return ( returnCode, data)
     # End of GetStartupBaudRate()
-
-

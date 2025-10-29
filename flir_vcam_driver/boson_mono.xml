@@ -8,7 +8,7 @@
          Ting
       </creator>
         <sensor_name index="1" type="char" size="[1 6]">
-         AR1335
+         flir_boson
       </sensor_name>
         <sample_name index="1" type="char" size="[1 9]">
          8Mlens_01
@@ -1269,7 +1269,7 @@
         </AFPS>
     </system>
     <cli>
-        <ae enable="true" bypass="true">
+        <ae enable="false" bypass="true">
             <afps>false</afps>
             <flicker.period>1</flicker.period>
             <damping.over>0.40000001</damping.over>
@@ -1277,12 +1277,12 @@
             <set.point>50</set.point>
             <tolerance>20</tolerance>
         </ae>
-        <af enable="true">
+        <af enable="false">
             <algorithm oneshot="true">1</algorithm>
         </af>
     </cli>
     <tuning>
-        <ae enable="true" bypass="false">
+        <ae enable="false" bypass="true">
             <afps afps="false"/>
             <flicker.period>1</flicker.period>
             <damping.over>0.2</damping.over>
@@ -1291,13 +1291,13 @@
             <tolerance>40</tolerance>
             <weight>[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]</weight>
         </ae>
-        <af enable="true">
+        <af enable="false">
             <algorithm oneshot="false">2</algorithm>
             <length>0</length>
             <mode>2</mode>
         </af>
         <avs/>
-        <awb enable="true">
+        <awb enable="false">
             <damping>true</damping>
             <index>4</index>
             <mode>1</mode>
@@ -1308,12 +1308,12 @@
             <green.r>42</green.r>
             <blue>42</blue>
         </bls>
-        <cac enable="true"/>
+        <cac enable="false"/>
         <cnr enable="false">
             <threshold.tc.1>0</threshold.tc.1>
             <threshold.tc.2>0</threshold.tc.2>
         </cnr>
-        <cproc enable="true">
+        <cproc enable="false">
             <config>AwAAAAMAAAADAAAAAACNP/He+ooAAAAAAAAAAA==</config>
         </cproc>
         <demosaic enable="false">
@@ -1321,8 +1321,8 @@
             <threshold>0</threshold>
         </demosaic>
         <nr3d/>
-        <dpcc enable="true"/>
-        <dpf enable="true">
+        <dpcc enable="false"/>
+        <dpf enable="false">
             <gradient>0.15000001</gradient>
             <offset>0</offset>
             <minimum.bound>2</minimum.bound>
@@ -1331,7 +1331,7 @@
             <sigma.red.blue>4</sigma.red.blue>
         </dpf>
         <ee/>
-        <gc enable="true">
+        <gc enable="false">
             <curve>AQAAAAAASQCJALcA3wAfAVQBgwGtAfYBNQJvAtMCKgN4A78D/wMAAA==</curve>
         </gc>
         <hdr enable="false">
@@ -1368,13 +1368,13 @@
             </input>
             <index>0</index>
         </inputs>
-        <lsc enable="true" adaptive="false"/>
+        <lsc enable="false" adaptive="false"/>
         <paths>
             <path index="0">
-                <height>800</height>
+                <height>512</height>
                 <layout>2</layout>
                 <mode>4</mode>
-                <width>1280</width>
+                <width>640</width>
             </path>
             <path index="1">
                 <height>0</height>
@@ -1403,38 +1403,8 @@
         </paths>
         <sensors>
             <sensor>
-                <calib.file>isp-2023-06-05_16-06-52.xml</calib.file>
-                <driver.file>ar0144.drv</driver.file>
-                <ec>
-                    <gain>2.0029297</gain>
-                    <hdr.ratio>0</hdr.ratio>
-                    <integration.time>0.0051684999</integration.time>
-                </ec>
-                <test.pattern enable="false"/>
-            </sensor>
-            <sensor>
-                <calib.file></calib.file>
-                <driver.file></driver.file>
-                <ec>
-                    <gain>0</gain>
-                    <hdr.ratio>0</hdr.ratio>
-                    <integration.time>0</integration.time>
-                </ec>
-                <test.pattern enable="false"/>
-            </sensor>
-            <sensor>
-                <calib.file></calib.file>
-                <driver.file></driver.file>
-                <ec>
-                    <gain>0</gain>
-                    <hdr.ratio>0</hdr.ratio>
-                    <integration.time>0</integration.time>
-                </ec>
-                <test.pattern enable="false"/>
-            </sensor>
-            <sensor>
-                <calib.file></calib.file>
-                <driver.file></driver.file>
+                <calib.file>boson_mono.xml</calib.file>
+                <driver.file>flir_boson.drv</driver.file>
                 <ec>
                     <gain>0</gain>
                     <hdr.ratio>0</hdr.ratio>
@@ -1443,7 +1413,7 @@
                 <test.pattern enable="false"/>
             </sensor>
         </sensors>
-        <simp enable="true"/>
+        <simp enable="false"/>
         <wb>
             <cc.matrix>[1.609375,-0.40625,-0.1953125,-0.4453125,1.703125,-0.234375,0.03125,-0.625,1.6171875]</cc.matrix>
             <cc.offset>
@@ -1459,14 +1429,14 @@
             </wb.gains>
         </wb>
         <wdr>
-            <v1 enable="true">
+            <v1 enable="false">
                 <d.y>[0,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4]</d.y>
                 <y.m>[0,124,248,372,496,620,744,868,992,1117,1241,1365,1489,1613,1737,1861,1985,2110,2234,2358,2482,2606,2730,2854,2978,3103,3227,3351,3475,3599,3723,3847,3971]</y.m>
             </v1>
-            <v2 enable="true">
+            <v2 enable="false">
                 <strength>0</strength>
             </v2>
-            <v3 enable="true" auto="true">
+            <v3 enable="false" auto="true">
                 <gain.max>16</gain.max>
                 <strength>100</strength>
                 <strength.global>0</strength.global>
@@ -1480,6 +1450,10 @@
             <table>null</table>
         </filter>
         <dewarp enable="false"/>
+        <degamma enable="false">
+            <px>[6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6]</px>
+            <x>[0,64,128,192,256,320,384,448,512,576,640,704,768,832,896,960,1024,1088,1152,1216,1280,1344,1408,1472,1536,1600,1664,1728,1792,1856,1920,1984,2048,2112,2176,2240,2304,2368,2432,2496,2560,2624,2688,2752,2816,2880,2944,3008,3072,3136,3200,3264,3328,3392,3456,3520,3584,3648,3712,3776,3840,3904,3968,4032,4095]</x>
+            <y>[0,64,128,192,256,320,384,448,512,576,640,704,768,832,896,960,1024,1088,1152,1216,1280,1344,1408,1472,1536,1600,1664,1728,1792,1856,1920,1984,2048,2112,2176,2240,2304,2368,2432,2496,2560,2624,2688,2752,2816,2880,2944,3008,3072,3136,3200,3264,3328,3392,3456,3520,3584,3648,3712,3776,3840,3904,3968,4032,4095]</y>
+        </degamma>
     </tuning>
 </matfile>
-

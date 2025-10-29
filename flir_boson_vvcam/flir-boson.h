@@ -85,6 +85,8 @@ struct flir_boson_dev {
 
 	/* Camera information */
 	u32 camera_sn;
+	unsigned int csi_id;
+
 /* FSLP communication */
 u8 fslp_tx_buf[FLIR_FSLP_MAX_DATA];
 u8 fslp_rx_buf[FLIR_FSLP_MAX_DATA];

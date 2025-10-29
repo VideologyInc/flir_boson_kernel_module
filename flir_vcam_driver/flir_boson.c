@@ -34,11 +34,16 @@
 #include <ebase/trace.h>
 #include <ebase/types.h>
 #include <fcntl.h>
+#include <stdio.h>
 #include <sys/ioctl.h>
 
 CREATE_TRACER(FLIR_BOSON_INFO, "FLIR_BOSON: ", INFO, 0);
 CREATE_TRACER(FLIR_BOSON_WARN, "FLIR_BOSON: ", WARNING, 0);
 CREATE_TRACER(FLIR_BOSON_ERROR, "FLIR_BOSON: ", ERROR, 1);
+
+USE_TRACER(FLIR_BOSON_INFO);
+USE_TRACER(FLIR_BOSON_WARN);
+USE_TRACER(FLIR_BOSON_ERROR);
 
 #ifdef SUBDEV_V4L2
 #include <fcntl.h>
@@ -46,6 +51,8 @@ CREATE_TRACER(FLIR_BOSON_ERROR, "FLIR_BOSON: ", ERROR, 1);
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <sys/mman.h>
+// #undef TRACE
+// #define TRACE(x, fmt, args...) printf("[FLIR] " fmt "\n", ##args)
 #endif
 
 static const char SensorName[16] = "flir_boson";
@@ -505,6 +512,7 @@ static RESULT FLIR_BOSON_IsiGetCapsIss(IsiSensorHandle_t handle, IsiSensorCaps_t
     RESULT result = RET_SUCCESS;
 
     TRACE(FLIR_BOSON_INFO, "%s (enter) \n", __func__);
+    printf("FLIR_BOSON_IsiGetCapsIss called\n");
 
     FLIR_BOSON_Context_t *pFLIR_BOSONCtx = (FLIR_BOSON_Context_t *)handle;
 
@@ -969,31 +977,6 @@ static RESULT FLIR_BOSON_IsiSensorSetWBIss(IsiSensorHandle_t handle, IsiSensorWB
 }
 
 static RESULT FLIR_BOSON_IsiSetTestPatternIss(IsiSensorHandle_t handle, IsiSensorTpgMode_e tpgMode) {
-    int32_t ret = 0;
-
-    TRACE(FLIR_BOSON_INFO, "%s (enter)\n", __func__);
-
-    FLIR_BOSON_Context_t *pFLIR_BOSONCtx = (FLIR_BOSON_Context_t *)handle;
-    HalContext_t         *pHalCtx        = (HalContext_t *)pFLIR_BOSONCtx->IsiCtx.HalHandle;
-
-    struct sensor_test_pattern_s TestPattern;
-    if (tpgMode == ISI_TPG_DISABLE) {
-        TestPattern.enable  = 0;
-        TestPattern.pattern = 0;
-    } else {
-        TestPattern.enable  = 1;
-        TestPattern.pattern = (uint32_t)tpgMode - 1;
-    }
-
-    ret = ioctl(pHalCtx->sensor_fd, VVSENSORIOC_S_TEST_PATTERN, &TestPattern);
-    if (ret != 0) {
-        TRACE(FLIR_BOSON_ERROR, "%s: set test pattern %d error\n", __func__, tpgMode);
-        return RET_FAILURE;
-    }
-
-    TRACE(FLIR_BOSON_INFO, "%s: test pattern enable[%d] mode[%d]\n", __func__, TestPattern.enable, TestPattern.pattern);
-
-    TRACE(FLIR_BOSON_INFO, "%s: (exit)\n", __func__);
 
     return RET_SUCCESS;
 }
@@ -1159,6 +1142,7 @@ static RESULT FLIR_BOSON_IsiSetAeStartExposureIs(IsiSensorHandle_t handle, uint6
 
 RESULT FLIR_BOSON_IsiGetSensorIss(IsiSensor_t *pIsiSensor) {
     TRACE(FLIR_BOSON_INFO, "%s (enter)\n", __func__);
+    printf("FLIR sensor OPEN FLIR_BOSON_IsiGetSensorIss %s\n", SensorName);
 
     if (pIsiSensor == NULL) return RET_NULL_POINTER;
     pIsiSensor->pszName                      = SensorName;
@@ -1203,7 +1187,7 @@ RESULT FLIR_BOSON_IsiGetSensorIss(IsiSensor_t *pIsiSensor) {
 * each sensor driver need declare this struct for isi load
 *****************************************************************************/
 IsiCamDrvConfig_t IsiCamDrvConfig = {
-    .CameraDriverID     = 0x2770,
+    .CameraDriverID     = 0x0B05,
     .pIsiHalQuerySensor = FLIR_BOSON_IsiHalQuerySensorIss,
     .pfIsiGetSensorIss  = FLIR_BOSON_IsiGetSensorIss,
 };

@@ -2,3 +2,11 @@
 *.pyc
 *__pycache__/
 build/
+vvcam/
+*.o
+*.ko
+*.mod.c
+*.mod.o
+*.order
+*.symvers
+*.version

@@ -2,3 +2,10 @@
 *.pyc
 *__pycache__/
 build/
+*.o
+*.ko
+*.mod.c
+*.mod.o
+*.order
+*.symvers
+*.version

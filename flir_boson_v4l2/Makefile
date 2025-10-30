@@ -17,7 +17,7 @@ KERNEL_SRC ?= /lib/modules/$(KERNEL_VERSION)/build
 default:
 	make -C $(KERNEL_SRC) M=$(CURDIR) modules
 
-modules_install:
+modules_install: default
 	make -C $(KERNEL_SRC) M=$(CURDIR) KERNELRELEASE=$(KERNEL_VERSION) modules_install
 
 clean:

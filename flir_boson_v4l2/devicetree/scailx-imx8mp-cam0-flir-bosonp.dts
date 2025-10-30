@@ -13,7 +13,7 @@
 
 &{/chosen} {
 	overlays {
-		cam0-flir-boson-mipi = __TIMESTAMP__;
+		cam0-flir-boson-v4l2 = __TIMESTAMP__;
 	};
 };
 
@@ -21,7 +21,7 @@
 	#address-cells = <1>;
 	#size-cells = <0>;
 
-	flir_boson_0: flirboson_0@6a {
+	flir_boson_0: flir_boson_0@6a {
 		compatible = "flir,boson-mipi";
 		reg = <0x6a>;
 		csi_id = <0>;
@@ -32,7 +32,7 @@
 		port {
 			mipi_0_ep: endpoint {
 				remote-endpoint = <&mipi_csi0_ep>;
-                max-pixel-frequency = /bits/ 64 <266000000>;
+				max-pixel-frequency = /bits/ 64 <245000000>;
 				data-lanes = <1 2>;
 				clock-lanes = <0>;
 			};
@@ -43,7 +43,7 @@
 &mipi_csi_0 {
 	#address-cells = <1>;
 	#size-cells = <0>;
-	clock-frequency = <266000000>;
+	clock-frequency = <245000000>;
 	assigned-clock-parents = <&clk IMX8MP_SYS_PLL1_266M>;
 	assigned-clock-rates = <266000000>;
 	status = "okay";
@@ -51,6 +51,7 @@
 	port@0 {
 		reg = <0>;
 		mipi_csi0_ep: endpoint {
+			max-pixel-frequency = /bits/ 64 <245000000>;
 			remote-endpoint = <&mipi_0_ep>;
 			data-lanes = <1 2>;
 			csis-hs-settle = <13>;
@@ -61,5 +62,5 @@
 };
 
 &cameradev {
-status = "okay";
+	status = "okay";
 };

@@ -8,6 +8,7 @@
 #define FLIR_BOSON_H
 
 #include <linux/i2c.h>
+#include <linux/types.h>
 #include <linux/gpio/consumer.h>
 #include <media/v4l2-async.h>
 #include <media/v4l2-ctrls.h>
@@ -17,11 +18,9 @@
 #include <media/v4l2-subdev.h>
 
 #include "EnumTypes.h"
-#include "FunctionCodes.h"
 #include "ReturnCodes.h"
 /* Forward declarations to avoid circular includes */
 
-#define FLIR_BOSON_NAME "flir-boson"
 #define FLIR_BOSON_I2C_ADDR 0x6A
 
 /* FSLP Protocol Constants */
@@ -29,11 +28,6 @@
 #define FLIR_MAGIC_TOKEN_1    0xA1
 #define FLIR_FSLP_HEADER_SIZE 4
 #define FLIR_FSLP_MAX_DATA    256
-
-/* FLIR SDK Command Codes */
-
-/* Boson Module Commands */
-#define BOSON_GETCAMERASN          0x00050002
 
 /* Supported Formats */
 struct flir_boson_format {
@@ -58,6 +52,7 @@ struct flir_fslp_cmd {
 } __packed;
 
 /* Device State */
+
 struct flir_boson_dev {
 	struct device *dev;
 	struct i2c_client *i2c_client;
@@ -76,20 +71,17 @@ struct flir_boson_dev {
 	u32 mipi_state;
 	bool streaming;
 	bool powered;
+	u64 pixel_rate;
+	u64 link_freq;
 
 	/* Camera information */
 	u32 camera_sn;
+	unsigned int csi_id;
+
 /* FSLP communication */
 u8 fslp_tx_buf[FLIR_FSLP_MAX_DATA];
 u8 fslp_rx_buf[FLIR_FSLP_MAX_DATA];
 u32 command_count; /* Sequence number for commands */
-};
-
-/* IOCTL Interface */
-struct flir_boson_ioctl_fslp {
-	u32 tx_len;
-	u32 rx_len;
-	u8 data[FLIR_FSLP_MAX_DATA];
 };
 
 /* IOCTL Commands */

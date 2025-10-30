@@ -13,7 +13,7 @@
 
 &{/chosen} {
 	overlays {
-		cam1-flir-boson-mipi = __TIMESTAMP__;
+		cam1-flir-boson-v4l2 = __TIMESTAMP__;
 	};
 };
 
@@ -27,7 +27,6 @@
 		csi_id = <1>;
 		reset-gpios = <&gpio_expander 1 GPIO_ACTIVE_LOW>;
 		status = "okay";
-		mipi_csi;
 
 		port {
 			mipi_1_ep: endpoint {
@@ -59,5 +58,5 @@
 };
 
 &cameradev {
-    status = "okay";
+	status = "okay";
 };

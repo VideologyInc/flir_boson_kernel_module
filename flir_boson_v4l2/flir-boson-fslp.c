@@ -15,6 +15,7 @@
 #include <linux/delay.h>
 #include "flir-boson.h"
 #include "ReturnCodes.h"
+#include "FunctionCodes.h"
 
 /* ========================================================================
  * Layer 0: Raw I2C Transport

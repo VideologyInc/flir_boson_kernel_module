@@ -146,7 +146,7 @@ static const struct flir_boson_framesize * flir_boson_find_framesize(u32 width, 
 			return &flir_boson_framesizes[i];
 	}
 
-	return &flir_boson_framesizes[0]; /* Default to first size */
+	return &flir_boson_framesizes[1]; /* Default to 640x512 */
 }
 
 /* V4L2 Subdev Core Operations */
@@ -184,7 +184,7 @@ static int flir_boson_s_power(struct v4l2_subdev *sd, int on)
 		if (ret != R_SUCCESS) {
 			dev_err(sensor->dev, "Failed to set MIPI interface: %s\n", flr_result_to_string(ret));
 			ret = flr_result_to_errno(ret);
-			// goto unlock;
+			goto unlock;
 		}
 		dev_dbg(sensor->dev, "POWER: Output interface set to MIPI successfully");
 		sensor->powered = 1;
@@ -228,23 +228,22 @@ static int flir_boson_s_stream_priv(struct flir_boson_dev *sensor, int enable) {
         ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPICLOCKLANEMODE, FLR_DVO_MIPI_CLOCK_LANE_MODE_CONTINUOUS, 1);
 		/* Start streaming */
 		dev_dbg(sensor->dev, "STREAM: Starting streaming - setting MIPI to ACTIVE");
-		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_ACTIVE, 400);
-		// if (ret != R_SUCCESS) {
-		// 	dev_err(sensor->dev, "Failed to start MIPI: %s\n", flr_result_to_string(ret));
-		// 	ret = flr_result_to_errno(ret);
-		// 	goto unlock;
-		// }
-		sensor->streaming = true;
-		dev_dbg(sensor->dev, "STREAM: Streaming started successfully");
-		ret = flir_boson_get_int_val(sensor, DVO_GETMIPISTATE, &state);
-		dev_dbg(sensor->dev, "mipi State: %d", state);
+		ret |= flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_ACTIVE, 400);
+		if (ret != R_SUCCESS) {
+			dev_err(sensor->dev, "Failed to start MIPI: %s\n", flr_result_to_string(ret));
+			goto unlock;
+		} else {
+    		sensor->streaming = true;
+    		dev_dbg(sensor->dev, "STREAM: Streaming started successfully");
+    		ret = flir_boson_get_int_val(sensor, DVO_GETMIPISTATE, &state);
+    		dev_dbg(sensor->dev, "mipi State: %d", state);
+		}
 	} else if (!enable && sensor->streaming) {
 		/* Stop streaming */
 		dev_dbg(sensor->dev, "STREAM: Stopping streaming - setting MIPI to OFF");
 		ret = flir_boson_send_int_cmd(sensor, DVO_SETMIPISTATE, FLR_DVO_MIPI_STATE_OFF, 1);
 		if (ret != R_SUCCESS) {
 			dev_err(sensor->dev, "Failed to stop MIPI: %s\n", flr_result_to_string(ret));
-			ret = flr_result_to_errno(ret);
 			goto unlock;
 		}
 		sensor->streaming = false;
@@ -313,9 +312,7 @@ static int flir_boson_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
 	if (format->pad != 0)
 		return -EINVAL;
 
-	mutex_lock(&sensor->lock);
 	format->format = sensor->fmt;
-	mutex_unlock(&sensor->lock);
 
 	dev_dbg(sensor->dev, "FORMAT: Getting current format - powered=%d, streaming=%d", sensor->powered, sensor->streaming);
 	dev_dbg(sensor->dev, "FORMAT: Getting format - code=0x%08X, width=%u, height=%u, color=%d", format->format.code, format->format.width, format->format.height, format->format.colorspace);
@@ -372,14 +369,23 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
 			ret = flr_result_to_errno(ret);
 			goto unlock;
 		}
-
+		/* Add telemetry line */
+		if (format->format.height >= 512) {
+		    dev_dbg(sensor->dev, "FORMAT: Adding telemetry line");
+			ret = flir_boson_send_int_cmd(sensor, TELEMETRY_SETSTATE, FLR_ENABLE, 1);
+			ret = flir_boson_send_int_cmd(sensor, TELEMETRY_SETLOCATION, FLR_TELEMETRY_LOC_BOTTOM, 1);
+			ret = flir_boson_send_int_cmd(sensor, TELEMETRY_SETMIPIEMBEDDEDDATATAG, FLR_DISABLE, 1);
+		} else {
+			dev_dbg(sensor->dev, "FORMAT: Removing telemetry line");
+			ret = flir_boson_send_int_cmd(sensor, TELEMETRY_SETSTATE, FLR_DISABLE, 1);
+		}
 		/* Set new DVO type */
 		dev_dbg(sensor->dev, "FORMAT: Setting DVO type to mipi");
 		ret = flir_boson_send_int_cmd(sensor, DVO_SETTYPE, new_format->flir_type, 100);
 		if (ret != R_SUCCESS) {
 			dev_err(sensor->dev, "FORMAT: Failed to set DVO type: %s", flr_result_to_string(ret));
 			ret = flr_result_to_errno(ret);
-			// goto unlock;
+			goto unlock;
 		}
 
 		/* Set new DVO output format */
@@ -390,7 +396,7 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
 		if (ret != R_SUCCESS) {
 			dev_err(sensor->dev, "FORMAT: Failed to set DVO output-format: %s", flr_result_to_string(ret));
 			ret = flr_result_to_errno(ret);
-			// goto unlock;
+			goto unlock;
 		}
 
 		/* Setup Linear radiometric mode */
@@ -437,7 +443,7 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
 		if (ret != R_SUCCESS) {
 			dev_err(sensor->dev, "FORMAT: Failed to set DVO muxtype: %s", flr_result_to_string(ret));
 			ret = flr_result_to_errno(ret);
-			// goto unlock;
+			goto unlock;
 		}
 
 		sensor->current_format = new_format;
@@ -458,7 +464,7 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
 
 unlock:
 	mutex_unlock(&sensor->lock);
-	return 0; //ret == R_SUCCESS ? 0 : (ret > 0 ? ret : flr_result_to_errno(ret));
+	return ret == R_SUCCESS ? 0 : (ret > 0 ? ret : flr_result_to_errno(ret));
 }
 
 /* V4L2 Subdev Operations */

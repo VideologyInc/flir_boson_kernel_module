@@ -1,7 +1,7 @@
-/* SPDX-License-Identifier: GPL-2.0 */
+/* SPDX-License-Identifier: MIT */
 /*
  * FLIR Boson+ MIPI Camera V4L2 Driver
- * Copyright (C) 2024
+ * Copyright (C) 2025
  */
 
 #ifndef FLIR_BOSON_H

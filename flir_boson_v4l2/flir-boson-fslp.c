@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: GPL-2.0
+// SPDX-License-Identifier: MIT
 /*
  * FLIR Boson+ FSLP Communication Layer - SDK Compliant Implementation
- * Copyright (C) 2024
+ * Copyright (C) 2025, VideologyInc
  *
  * This implementation follows the exact SDK architecture:
  * - Layer 1: I2C FSLP Framing (matches I2CFslp.py)

@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-2.0
+# SPDX-License-Identifier: MIT
 
 # Out-of-tree module build support
 flir-boson-objs := flir-boson-core.o flir-boson-fslp.o

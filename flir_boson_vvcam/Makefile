@@ -4,7 +4,7 @@
 flir-boson-vvcam-objs := flir-boson-core.o flir-boson-fslp.o
 obj-m += flir-boson-vvcam.o
 
-EXTRA_CFLAGS += -DDEBUG
+# EXTRA_CFLAGS += -DDEBUG
 
 # In-tree kernel build support
 obj-$(CONFIG_VIDEO_FLIR_BOSON_VVCAM) += flir-boson-vvcam.o

@@ -28,64 +28,15 @@
 #include "EnumTypes.h"
 #include "FunctionCodes.h"
 #include "flir-boson.h"
-#include "vvsensor.h"
 
 #define BOSON_DEFAULT_WIDTH 640
 #define BOSON_DEFAULT_HEIGHT 512
 #define BOSON_DEFAULT_FPS 60
 #define BOSON_CHIP_ID 0x0B05
 
-static const u64 boson_link_freqs[] = {245000000ULL};
-
 static int enable_radiometry = 0;
 module_param(enable_radiometry, int, 0644);
 MODULE_PARM_DESC(enable_radiometry, "enable_radiometry");
-
-static const struct vvcam_mode_info_s boson_modes[] = {
-    {
-        .index = 0,
-        .size =
-            {
-                .bounds_width  = BOSON_DEFAULT_WIDTH,
-                .bounds_height = BOSON_DEFAULT_HEIGHT,
-                .top           = 0,
-                .left          = 0,
-                .width         = BOSON_DEFAULT_WIDTH,
-                .height        = BOSON_DEFAULT_HEIGHT,
-            },
-        .hdr_mode  = SENSOR_MODE_LINEAR,
-        .bit_width = 14,
-        .data_compress =
-            {
-                .enable = 0,
-            },
-        .bayer_pattern = BAYER_GRBG,
-        .ae_info =
-            {
-                .def_frm_len_lines     = BOSON_DEFAULT_HEIGHT,
-                .curr_frm_len_lines    = BOSON_DEFAULT_HEIGHT - 1,
-                .one_line_exp_time_ns  = 30000,
-                .max_integration_line  = BOSON_DEFAULT_HEIGHT - 1,
-                .min_integration_line  = 4,
-                .max_again             = 1 * (1 << SENSOR_FIX_FRACBITS),
-                .min_again             = 1 * (1 << SENSOR_FIX_FRACBITS),
-                .max_dgain             = 1 * (1 << SENSOR_FIX_FRACBITS),
-                .min_dgain             = 1 * (1 << SENSOR_FIX_FRACBITS),
-                .gain_step             = 1,
-                .start_exposure        = 1000 * (1 << SENSOR_FIX_FRACBITS),
-                .cur_fps               = BOSON_DEFAULT_FPS * (1 << SENSOR_FIX_FRACBITS),
-                .max_fps               = BOSON_DEFAULT_FPS * (1 << SENSOR_FIX_FRACBITS),
-                .min_fps               = 1 * (1 << SENSOR_FIX_FRACBITS),
-                .min_afps              = 1 * (1 << SENSOR_FIX_FRACBITS),
-                .int_update_delay_frm  = 1,
-                .gain_update_delay_frm = 1,
-            },
-        .mipi_info =
-            {
-                .mipi_lane = 2,
-            },
-    },
-};
 
 /**
  * flr_result_to_errno - Convert FLR_RESULT to Linux error code
@@ -122,46 +73,7 @@ static int flr_result_to_errno(FLR_RESULT result) {
 	}
 }
 
-char* vvsensor_cmd_to_string[] = {
-    "VVSENSORIOC_RESET",
-    "VVSENSORIOC_S_POWER",
-    "VVSENSORIOC_G_POWER",
-    "VVSENSORIOC_S_CLK",
-    "VVSENSORIOC_G_CLK",
-    "VVSENSORIOC_QUERY",
-    "VVSENSORIOC_S_SENSOR_MODE",
-    "VVSENSORIOC_G_SENSOR_MODE",
-    "VVSENSORIOC_READ_REG",
-    "VVSENSORIOC_WRITE_REG",
-    "VVSENSORIOC_READ_ARRAY",
-    "VVSENSORIOC_WRITE_ARRAY",
-    "VVSENSORIOC_G_NAME",
-    "VVSENSORIOC_G_RESERVE_ID",
-    "VVSENSORIOC_G_CHIP_ID",
-    "VVSENSORIOC_S_INIT",
-    "VVSENSORIOC_S_STREAM",
-    "VVSENSORIOC_S_LONG_EXP",
-    "VVSENSORIOC_S_EXP",
-    "VVSENSORIOC_S_VSEXP",
-    "VVSENSORIOC_S_LONG_GAIN",
-    "VVSENSORIOC_S_GAIN",
-    "VVSENSORIOC_S_VSGAIN",
-    "VVSENSORIOC_S_FPS",
-    "VVSENSORIOC_G_FPS",
-    "VVSENSORIOC_S_HDR_RADIO",
-    "VVSENSORIOC_S_WB",
-    "VVSENSORIOC_S_BLC",
-    "VVSENSORIOC_G_EXPAND_CURVE",
-    "VVSENSORIOC_S_TEST_PATTERN",
-    "VVSENSORIOC_G_LENS",
-    "VVSENSORIOC_S_DATA_RATE",
-    "VVSENSORIOC_S_SYNC_MODE",
-    "VVSENSORIOC_S_SHUTTER_MODE",
-    "VVSENSORIOC_MAX",
-};
-
-
-/* Works with FOUR-CC values: 'GREY', 'YUV4', 'Y16 ', and via CSC: RGB3  */
+/* Works with FOUR-CC values: 'GREY', 'NV12', 'Y16 ', and via CSC: RGB3  */
 /* Supported formats */
 static const struct flir_boson_format flir_boson_formats[] = {
 	// leave YUV format default. The color-scapce-conversion knows how to handle it.
@@ -189,6 +101,7 @@ static const struct flir_boson_format flir_boson_formats[] = {
 static const struct flir_boson_framesize flir_boson_framesizes[] = {
 	{ .width = 320, .height = 256, .max_fps = 60 },
 	{ .width = 640, .height = 512, .max_fps = 60 },
+	{ .width = 640, .height = 514, .max_fps = 60 },          // add telementry Line
 };
 
 #define FLIR_BOSON_NUM_FORMATS ARRAY_SIZE(flir_boson_formats)
@@ -229,8 +142,7 @@ static const struct flir_boson_framesize * flir_boson_find_framesize(u32 width, 
 	int i;
 
 	for (i = 0; i < FLIR_BOSON_NUM_FRAMESIZES; i++) {
-		if (flir_boson_framesizes[i].width == width &&
-		    flir_boson_framesizes[i].height == height)
+		if (flir_boson_framesizes[i].width == width && flir_boson_framesizes[i].height == height)
 			return &flir_boson_framesizes[i];
 	}
 
@@ -301,7 +213,6 @@ unlock:
 	return ret == R_SUCCESS ? 0 : flr_result_to_errno(ret);
 }
 
-
 /* V4L2 Subdev Video Operations */
 static int flir_boson_s_stream_priv(struct flir_boson_dev *sensor, int enable) {
 	FLR_RESULT ret = R_SUCCESS;
@@ -350,98 +261,6 @@ static int flir_boson_s_stream(struct v4l2_subdev *sd, int enable)
 {
 	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
 	return flir_boson_s_stream_priv(sensor, enable);
-}
-
-static int boson_query_cap(struct flir_boson_dev *sensor, void *arg) {
-	struct v4l2_capability *pcap = (struct v4l2_capability *)arg;
-
-	strscpy((char *)pcap->driver, "flir_boson", sizeof(pcap->driver));
-	sprintf((char *)pcap->bus_info, "csi%d", sensor->csi_id);
-	if (sensor->i2c_client->adapter) {
-		pcap->bus_info[VVCAM_CAP_BUS_INFO_I2C_ADAPTER_NR_POS] = (__u8)sensor->i2c_client->adapter->nr;
-	} else {
-		pcap->bus_info[VVCAM_CAP_BUS_INFO_I2C_ADAPTER_NR_POS] = 0xFF;
-	}
-	return 0;
-}
-
-static int boson_query_supports(struct flir_boson_dev *sensor, void *parry) {
-    int ret = 0;
-	struct vvcam_mode_info_array_s *psensor_mode_arry = parry;
-	uint32_t support_counts = ARRAY_SIZE(boson_modes);
-
-	pr_debug("enter %s function\n", __func__);
-
-	ret = copy_to_user(&psensor_mode_arry->count, &support_counts, sizeof(support_counts));
-	ret |= copy_to_user(&psensor_mode_arry->modes, boson_modes, sizeof(boson_modes));
-	if (ret != 0) {
-		pr_err("enter %s failed to allocate memory\n", __func__);
-		ret = -ENOMEM;
-	}
-	return ret;
-}
-
-static int boson_get_sensor_mode(struct flir_boson_dev *sensor, void *arg) { return copy_to_user(arg, sensor->mode, sizeof(*sensor->mode)) ? -EFAULT : 0; }
-
-static int boson_set_sensor_mode(struct flir_boson_dev *sensor, void *arg) {
-    struct vvcam_mode_info_s mode;
-    int                      ret;
-
-    ret = copy_from_user(&mode, arg, sizeof(mode));
-    if (ret) return -EFAULT;
-
-    if (mode.index >= ARRAY_SIZE(boson_modes)) return -EINVAL;
-
-    sensor->mode        = &boson_modes[mode.index];
-    sensor->mode_change = true;
-    return 0;
-}
-
-static long flir_boson_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
-{
-	struct flir_boson_dev *sensor = to_flir_boson_dev(sd);
-	long                   ret    = 0;
-    u32                    value;
-
-    if (cmd < 0x100 + ARRAY_SIZE(vvsensor_cmd_to_string) && cmd >= 0x100) {
-        char* cmd_name = vvsensor_cmd_to_string[cmd-0x100];
-        dev_dbg(sensor->dev, "IOCTL: cmd=%d (%s)", cmd, cmd_name);
-    } else {
-        dev_dbg(sensor->dev, "IOCTL: cmd=0x%x", cmd);
-    }
-
-    switch (cmd) {
-    case VVSENSORIOC_S_POWER:
-    case VVSENSORIOC_S_CLK:
-    case VVSENSORIOC_RESET: ret = 0; break;
-    case VVSENSORIOC_G_CLK:
-        struct vvcam_clk_s clk = {
-            .sensor_mclk       = 24000000,
-            .csi_max_pixel_clk = 245000000,
-        };
-        ret = copy_to_user(arg, &clk, sizeof(clk)) ? -EFAULT : 0;
-        break;
-    case VIDIOC_QUERYCAP: ret = boson_query_cap(sensor, arg); break;
-    case VVSENSORIOC_QUERY: ret = boson_query_supports(sensor, arg); break;
-    case VVSENSORIOC_G_CHIP_ID:
-        value = BOSON_CHIP_ID;
-        ret   = copy_to_user(arg, &value, sizeof(value)) ? -EFAULT : 0;
-        break;
-    case VVSENSORIOC_G_SENSOR_MODE: ret = boson_get_sensor_mode(sensor, arg); break;
-    case VVSENSORIOC_S_SENSOR_MODE: ret = boson_set_sensor_mode(sensor, arg); break;
-    case VVSENSORIOC_S_STREAM:
-        ret = copy_from_user(&value, arg, sizeof(value));
-        if (ret) break;
-        ret = flir_boson_s_stream_priv(sensor, !!value);
-        break;
-    case VVSENSORIOC_S_EXP:
-    case VVSENSORIOC_S_GAIN: ret = 0; break;
-    case VVSENSORIOC_S_FPS: ret = 0; break;
-    case VVSENSORIOC_G_FPS: ret = 0; break;
-    default: ret = -EINVAL; break;
-    }
-
-    return ret;
 }
 
 /* V4L2 Subdev Pad Operations */
@@ -645,7 +464,6 @@ unlock:
 /* V4L2 Subdev Operations */
 static const struct v4l2_subdev_core_ops flir_boson_core_ops = {
 	.s_power = flir_boson_s_power,
-	.ioctl = flir_boson_ioctl,
 };
 
 static const struct v4l2_subdev_video_ops flir_boson_video_ops = {
@@ -725,9 +543,6 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 		sensor->reset_gpio = NULL;
 	}
 	dev_dbg(dev, "PROBE: Reset GPIO %s", sensor->reset_gpio ? "configured" : "not available");
-
-	sensor->mode        = &boson_modes[0];
-    sensor->mode_change = true;
 
 	/* Parse device tree endpoint */
 	endpoint = fwnode_graph_get_next_endpoint(dev_fwnode(dev), NULL);

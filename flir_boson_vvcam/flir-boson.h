@@ -18,7 +18,6 @@
 #include <media/v4l2-subdev.h>
 
 #include "EnumTypes.h"
-#include "FunctionCodes.h"
 #include "ReturnCodes.h"
 /* Forward declarations to avoid circular includes */
 
@@ -29,11 +28,6 @@
 #define FLIR_MAGIC_TOKEN_1    0xA1
 #define FLIR_FSLP_HEADER_SIZE 4
 #define FLIR_FSLP_MAX_DATA    256
-
-/* FLIR SDK Command Codes */
-
-/* Boson Module Commands */
-#define BOSON_GETCAMERASN          0x00050002
 
 /* Supported Formats */
 struct flir_boson_format {
@@ -58,7 +52,6 @@ struct flir_fslp_cmd {
 } __packed;
 
 /* Device State */
-struct vvcam_mode_info_s;
 
 struct flir_boson_dev {
 	struct device *dev;
@@ -78,8 +71,6 @@ struct flir_boson_dev {
 	u32 mipi_state;
 	bool streaming;
 	bool powered;
-	bool mode_change;
-	const struct vvcam_mode_info_s *mode;
 	u64 pixel_rate;
 	u64 link_freq;
 
@@ -91,13 +82,6 @@ struct flir_boson_dev {
 u8 fslp_tx_buf[FLIR_FSLP_MAX_DATA];
 u8 fslp_rx_buf[FLIR_FSLP_MAX_DATA];
 u32 command_count; /* Sequence number for commands */
-};
-
-/* IOCTL Interface */
-struct flir_boson_ioctl_fslp {
-	u32 tx_len;
-	u32 rx_len;
-	u8 data[FLIR_FSLP_MAX_DATA];
 };
 
 /* IOCTL Commands */

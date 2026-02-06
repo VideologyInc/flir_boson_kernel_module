@@ -389,7 +389,7 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
             }
 
 			// newly added set AGC mode: auto bright or auto linear	
-			ret = flir_boson_send_int_cmd(sensor, AGC_SETMODE, FLR_AGC_MODE_AUTO_BRIGHT, 1); // FLR_AGC_MODE_AUTO_LINEAR
+			ret = flir_boson_send_int_cmd(sensor, AGC_SETMODE, FLR_AGC_MODE_AUTO_BRIGHT, 1); // FLR_AGC_MODE_NORMAL // FLR_AGC_MODE_AUTO_LINEAR 
             if (ret != R_SUCCESS) {
                 dev_err(sensor->dev, "FORMAT: Failed to set AGC mode: %s", flr_result_to_string(ret));
                 ret = flr_result_to_errno(ret);

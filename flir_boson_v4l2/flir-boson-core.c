@@ -16,6 +16,8 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 
+#include <linux/videodev2.h>
+
 #include <linux/version.h>
 #include <media/v4l2-async.h>
 #include <media/v4l2-ctrls.h>
@@ -378,12 +380,22 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
         /* Setup Linear radiometric mode */
         /* from https://flir.custhelp.com/app/answers/detail/a_id/3387/~/flir-oem---boson-video-and-image-capture-using-opencv-16-bit-y16 */
         if ((new_format->code == MEDIA_BUS_FMT_Y14_1X14) && (enable_radiometry)) {
-            ret = flir_boson_send_int_cmd(sensor, BOSON_SETGAINMODE, FLR_BOSON_HIGH_GAIN, 1);
+
+			ret = flir_boson_send_int_cmd(sensor, BOSON_SETGAINMODE, FLR_BOSON_AUTO_GAIN, 1); // FLR_BOSON_HIGH_GAIN
             if (ret != R_SUCCESS) {
                 dev_err(sensor->dev, "FORMAT: Failed to set gain mode: %s", flr_result_to_string(ret));
                 ret = flr_result_to_errno(ret);
                 // goto unlock;
             }
+
+			// newly added set AGC mode: auto bright or auto linear	
+			ret = flir_boson_send_int_cmd(sensor, AGC_SETMODE, FLR_AGC_MODE_AUTO_BRIGHT, 1); // FLR_AGC_MODE_AUTO_LINEAR
+            if (ret != R_SUCCESS) {
+                dev_err(sensor->dev, "FORMAT: Failed to set AGC mode: %s", flr_result_to_string(ret));
+                ret = flr_result_to_errno(ret);
+                // goto unlock;
+            }
+
             ret = flir_boson_send_int_cmd(sensor, TLINEAR_SETCONTROL, FLR_ENABLE, 1);
             if (ret != R_SUCCESS) {
                 dev_err(sensor->dev, "FORMAT: Failed to enable linear mode: %s", flr_result_to_string(ret));
@@ -484,6 +496,8 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
     struct fwnode_handle  *endpoint;
 	struct flir_boson_dev *sensor;
     int                    ret;
+
+	pr_info("***** AB1969 Boson Flir Probe starts *****\n");
 
 	dev_info(dev, "FLIR Boson+ MIPI camera driver probing\n");
 	dev_dbg(dev, "PROBE: I2C address=0x%02x", client->addr);

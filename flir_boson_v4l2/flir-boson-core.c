@@ -30,7 +30,7 @@
 #include "FunctionCodes.h"
 #include "flir-boson.h"
 
-static int enable_radiometry = 0;
+static int enable_radiometry = 1;
 module_param(enable_radiometry, int, 0644);
 MODULE_PARM_DESC(enable_radiometry, "enable_radiometry");
 
@@ -381,22 +381,74 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
         /* from https://flir.custhelp.com/app/answers/detail/a_id/3387/~/flir-oem---boson-video-and-image-capture-using-opencv-16-bit-y16 */
         if ((new_format->code == MEDIA_BUS_FMT_Y14_1X14) && (enable_radiometry)) {
 
-			ret = flir_boson_send_int_cmd(sensor, BOSON_SETGAINMODE, FLR_BOSON_AUTO_GAIN, 1); // FLR_BOSON_HIGH_GAIN
+			ret = flir_boson_send_int_cmd(sensor, BOSON_SETGAINMODE, FLR_BOSON_AUTO_GAIN, 1); //  FLR_BOSON_HIGH_GAIN
             if (ret != R_SUCCESS) {
                 dev_err(sensor->dev, "FORMAT: Failed to set gain mode: %s", flr_result_to_string(ret));
                 ret = flr_result_to_errno(ret);
                 // goto unlock;
             }
 
-			// newly added set AGC mode: auto bright or auto linear	
-			ret = flir_boson_send_int_cmd(sensor, AGC_SETMODE, FLR_AGC_MODE_AUTO_BRIGHT, 1); // FLR_AGC_MODE_NORMAL // FLR_AGC_MODE_AUTO_LINEAR 
+			// newly added set AGC mode: auto bright or auto linear
+			// ret = flir_boson_send_int_cmd(sensor, AGC_SETMODE, FLR_AGC_MODE_NORMAL, 1); // FLR_AGC_MODE_AUTO_BRIGHT // FLR_AGC_MODE_AUTO_LINEAR
+
+			union word_data { u16 th[2]; u32 u;};
+			union word_data tf_thresholds;
+			tf_thresholds.th[0] = 5600;	// tf_dmin
+			tf_thresholds.th[1] = 6400; // tf_dmax
+
+			ret = flir_boson_send_int_cmd(sensor, AGC_SETMODE, FLR_AGC_MODE_THRESHOLD, 1) &
+				flir_boson_send_int_cmd(sensor, AGC_SETTFTHRESHOLDS, tf_thresholds.u, 1);		// threhsold mode, dmin in default = 0, dmax default = 16383 or 65535. 
             if (ret != R_SUCCESS) {
                 dev_err(sensor->dev, "FORMAT: Failed to set AGC mode: %s", flr_result_to_string(ret));
                 ret = flr_result_to_errno(ret);
                 // goto unlock;
             }
 
-            ret = flir_boson_send_int_cmd(sensor, TLINEAR_SETCONTROL, FLR_ENABLE, 1);
+			// set agc parameters.
+			union fdata { float f; u32 u; };
+			union fdata plateau; 
+			plateau.f = 0.3f;
+
+			union fdata linear_percent;
+			linear_percent.f = 10.0f;
+
+			union fdata gain;
+			gain.f = 8.0f;
+
+			union fdata gamma;
+			gamma.f = 0.5f;
+
+			union fdata outlier;
+			outlier.f = 0.01f;
+
+			union fdata dde;
+			dde.f = 3.0f;
+
+			ret = flir_boson_send_int_cmd(sensor, AGC_SETPERCENTPERBIN, plateau.u, 1) &		// plateau value [1, 100, 7]
+				flir_boson_send_int_cmd(sensor, AGC_SETLINEARPERCENT, linear_percent.u, 1) &		// linear percent [1, 100, 20]
+				flir_boson_send_int_cmd(sensor, AGC_SETMAXGAIN, gain.u, 1) &		// max gain [0.25, 8.00, 1.25]
+				flir_boson_send_int_cmd(sensor, AGC_SETGAMMA, gamma.u, 1) &		// ace = gamma [0.5, 4.00, 0.9]
+				flir_boson_send_int_cmd(sensor, AGC_SETOUTLIERCUT, outlier.u, 1) &	// tail = outlier [0.0, 49.0, 0.0]
+				flir_boson_send_int_cmd(sensor, AGC_SETD2BR, dde.u, 1) &		// dde = details to background ratio [0.0, 6.00, 1.3]
+				flir_boson_send_int_cmd(sensor, AGC_SETUSEENTROPY, FLR_ENABLE, 1) &		// use entropy = FLR_ENABLE, use platueau = FLR_DISABLE
+//				flir_boson_send_int_cmd(sensor, AGC_SETCONTRAST, 100, 1) &		// contrast [0, 100]
+				flir_boson_send_int_cmd(sensor, AGC_SETBRIGHTNESS, 160, 1);		// brightness [0, 255], default = 128
+//				flir_boson_send_int_cmd(sensor, AGC_SETBRIGHTNESSBIAS, 6000, 1);		// brightness bias 16bit to 8bit [0, 16383] (or [dmin, dmax] see below threshold mode.)
+
+			u32 bin_first, bin_last;
+			ret &= flir_boson_get_int_val(sensor, AGC_GETFIRSTBIN, &bin_first);	// first bin
+			ret &= flir_boson_get_int_val(sensor, AGC_GETLASTBIN, &bin_last);	// last bin
+
+			if (ret != R_SUCCESS) {
+                dev_err(sensor->dev, "FORMAT: Failed to set AGC parameters: %s", flr_result_to_string(ret));
+                ret = flr_result_to_errno(ret);
+                // goto unlock;
+            }
+			pr_info("(first bin, last bin) = (%d, %d)\n", bin_first, bin_last);
+
+
+			/*	
+			ret = flir_boson_send_int_cmd(sensor, TLINEAR_SETCONTROL, FLR_ENABLE, 1);
             if (ret != R_SUCCESS) {
                 dev_err(sensor->dev, "FORMAT: Failed to enable linear mode: %s", flr_result_to_string(ret));
                 ret = flr_result_to_errno(ret);
@@ -414,6 +466,7 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
                 ret = flr_result_to_errno(ret);
                 // goto unlock;
             }
+			*/
             u32 dummy;
             ret = flir_boson_get_int_val(sensor, BOSON_RUNFFC, &dummy);
             if (ret != R_SUCCESS) {

@@ -15,6 +15,52 @@ def show_telemetry(tel_line):
     print(f"Cam temp: {cam_temp}")
 
 
+def calculate_psnr(src, tgt):
+    return cv2.PSNR(src, tgt)
+
+
+# Save 16bit image to different output files.
+def save_images(img, prefix):
+    height = img.shape[0]
+    img2 = img[:-2, :] if height == 514 else img
+    print("min, max pixel value = ", np.amin(img2), ",", np.amax(img2))
+
+    # Save 16bit img raw
+    cv2.imwrite(prefix + "_16bit.png", img2)
+
+    image_16bit_normalized = cv2.normalize(img2, None, 0, 65535, cv2.NORM_MINMAX).astype(np.uint16)
+    cv2.imwrite(prefix + "_normalize_16bit.png", image_16bit_normalized)
+
+    # Save image after simple scale
+    image_16bit_scaled = cv2.convertScaleAbs(img2, alpha=(4.0)).astype(np.uint16)
+    cv2.imwrite(prefix + "_scale_mul4_16bit.png", image_16bit_scaled)
+
+    # Normalize to 8bit and save.
+    image_8bit = cv2.normalize(img2, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
+    cv2.imwrite(prefix + "_normalize_8bit.png", image_8bit)
+
+    # Scale to 8bit and save.
+    image_scale = cv2.convertScaleAbs(img2, alpha=(1.0 / 64.0)).astype(np.uint8)
+    cv2.imwrite(prefix + "_scale_div64_8bit.png", image_scale)
+
+    image_scale_16bit = cv2.convertScaleAbs(image_scale, alpha=(256.0)).astype(np.uint16)
+    image_norm_scale_16bit = np.uint16(image_8bit) * 257
+    cv2.imwrite(prefix + "_normalize_8bit_scale256_16bit.png", image_norm_scale_16bit)
+
+    # Show and compare PSNR
+    # 16bit psnr
+    print("PSNR 16bit raw to normalized    = ", calculate_psnr(image_16bit_normalized, img2))
+    print("PSNR 16bit raw to scaled        = ", calculate_psnr(image_16bit_scaled, img2))
+    print("PSNR 16bit scaled to normalized = ", calculate_psnr(image_16bit_normalized, image_16bit_scaled))
+    # 8bit psnr
+    print("PSNR 8bit scaled to normalized  = ", calculate_psnr(image_scale, image_8bit))
+
+    # Scale to scale
+    print("PSNR 8bit to 16bit scaled        = ", calculate_psnr(image_scale_16bit, image_16bit_scaled))
+    # Normalize to nomalize
+    print("PSNR 8bit to 16bit normalized    = ", calculate_psnr(image_16bit_normalized, image_norm_scale_16bit))
+
+
 # Open a Boson camera at 640 x 514 to get telemetry info from the extra 2 lines ;-)
 def boson_show_telemetry(camera_number=0, height=514, prefix=""):
     cap = cv2.VideoCapture(camera_number, cv2.CAP_V4L2)
@@ -45,24 +91,13 @@ def boson_show_telemetry(camera_number=0, height=514, prefix=""):
                 show_telemetry(tel_line)
             if prefix:
                 print(img.shape, img.dtype)
-                img2 = img[:-2, :] if height == 514 else img
-                print("min, max pixel value = ", np.amin(img2), ",", np.amax(img2))
-                # Save 16bit img before normalize
-                cv2.imwrite(prefix + "_16bit.png", img2)
-                image_8bit = cv2.normalize(img2, None, 0, 255, cv2.NORM_MINMAX).astype(
-                    np.uint8
-                )
-                # Save img after normalize
-                cv2.imwrite(prefix + "_normalize_8bit.png", image_8bit)
-                # Save image after simple scale
-                image_scale = cv2.convertScaleAbs(img2, alpha=(1.0 / 64.0)).astype(np.uint8)
-                cv2.imwrite(prefix + "_scale_64_8bit.png", image_scale)
+                save_images(img, prefix)
 
     finally:
         cap.release()
 
 
 # main function with boson at /dev/video1
-boson_show_telemetry(1, 514, "boson_640x514")
+# boson_show_telemetry(1, 514, "boson_640x514")
 
 boson_show_telemetry(1, 512, "boson_640x512")

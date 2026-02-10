@@ -389,8 +389,9 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
             }
 
 			// newly added set AGC mode: auto bright or auto linear
-			// ret = flir_boson_send_int_cmd(sensor, AGC_SETMODE, FLR_AGC_MODE_NORMAL, 1); // FLR_AGC_MODE_AUTO_BRIGHT // FLR_AGC_MODE_AUTO_LINEAR
+			ret = flir_boson_send_int_cmd(sensor, AGC_SETMODE, FLR_AGC_MODE_NORMAL, 1); // FLR_AGC_MODE_AUTO_BRIGHT // FLR_AGC_MODE_AUTO_LINEAR
 
+			/*
 			union word_data { u16 th[2]; u32 u;};
 			union word_data tf_thresholds;
 			tf_thresholds.th[0] = 5600;	// tf_dmin
@@ -398,7 +399,8 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
 
 			ret = flir_boson_send_int_cmd(sensor, AGC_SETMODE, FLR_AGC_MODE_THRESHOLD, 1) &
 				flir_boson_send_int_cmd(sensor, AGC_SETTFTHRESHOLDS, tf_thresholds.u, 1);		// threhsold mode, dmin in default = 0, dmax default = 16383 or 65535. 
-            if (ret != R_SUCCESS) {
+			*/
+			if (ret != R_SUCCESS) {
                 dev_err(sensor->dev, "FORMAT: Failed to set AGC mode: %s", flr_result_to_string(ret));
                 ret = flr_result_to_errno(ret);
                 // goto unlock;
@@ -407,7 +409,7 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
 			// set agc parameters.
 			union fdata { float f; u32 u; };
 			union fdata plateau; 
-			plateau.f = 0.3f;
+			plateau.f = 3.0f;
 
 			union fdata linear_percent;
 			linear_percent.f = 10.0f;

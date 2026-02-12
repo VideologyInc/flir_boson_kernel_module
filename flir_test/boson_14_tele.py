@@ -1,3 +1,16 @@
+"""
+
+Open Boson camera at /dev/video1 GRAY16 format and capture a frame.
+Save the frame (16bit) image and its normalized outputs to 16bit and 8bit image files.
+And calculate PNSR among them to detect which ones are closer and which ones are more different.
+
+Copyright (C) 2026 Videology
+Programmed by Jianping Ye <jye@videologyinc.com>
+
+Feb 12. Added 16bit to 8bit to 16bit conversion and PSNR calculation for raw, scaled, and normalized images.
+
+"""
+
 import cv2
 import numpy as np
 from glob import glob
@@ -28,7 +41,9 @@ def save_images(img, prefix):
     # Save 16bit img raw
     cv2.imwrite(prefix + "_16bit.png", img2)
 
-    image_16bit_normalized = cv2.normalize(img2, None, 0, 65535, cv2.NORM_MINMAX).astype(np.uint16)
+    image_16bit_normalized = cv2.normalize(
+        img2, None, 0, 65535, cv2.NORM_MINMAX
+    ).astype(np.uint16)
     cv2.imwrite(prefix + "_normalize_16bit.png", image_16bit_normalized)
 
     # Save image after simple scale
@@ -43,22 +58,38 @@ def save_images(img, prefix):
     image_scale = cv2.convertScaleAbs(img2, alpha=(1.0 / 64.0)).astype(np.uint8)
     cv2.imwrite(prefix + "_scale_div64_8bit.png", image_scale)
 
-    image_scale_16bit = cv2.convertScaleAbs(image_scale, alpha=(256.0)).astype(np.uint16)
+    image_scale_16bit = cv2.convertScaleAbs(image_scale, alpha=(256.0)).astype(
+        np.uint16
+    )
     image_norm_scale_16bit = np.uint16(image_8bit) * 257
     cv2.imwrite(prefix + "_normalize_8bit_scale256_16bit.png", image_norm_scale_16bit)
 
     # Show and compare PSNR
     # 16bit psnr
-    print("PSNR 16bit raw to normalized    = ", calculate_psnr(image_16bit_normalized, img2))
-    print("PSNR 16bit raw to scaled        = ", calculate_psnr(image_16bit_scaled, img2))
-    print("PSNR 16bit scaled to normalized = ", calculate_psnr(image_16bit_normalized, image_16bit_scaled))
+    print(
+        "PSNR 16bit raw to normalized    = ",
+        calculate_psnr(image_16bit_normalized, img2),
+    )
+    print(
+        "PSNR 16bit raw to scaled        = ", calculate_psnr(image_16bit_scaled, img2)
+    )
+    print(
+        "PSNR 16bit scaled to normalized = ",
+        calculate_psnr(image_16bit_normalized, image_16bit_scaled),
+    )
     # 8bit psnr
     print("PSNR 8bit scaled to normalized  = ", calculate_psnr(image_scale, image_8bit))
 
     # Scale to scale
-    print("PSNR 8bit to 16bit scaled        = ", calculate_psnr(image_scale_16bit, image_16bit_scaled))
+    print(
+        "PSNR 8bit to 16bit scaled        = ",
+        calculate_psnr(image_scale_16bit, image_16bit_scaled),
+    )
     # Normalize to nomalize
-    print("PSNR 8bit to 16bit normalized    = ", calculate_psnr(image_16bit_normalized, image_norm_scale_16bit))
+    print(
+        "PSNR 8bit to 16bit normalized    = ",
+        calculate_psnr(image_16bit_normalized, image_norm_scale_16bit),
+    )
 
 
 # Open a Boson camera at 640 x 514 to get telemetry info from the extra 2 lines ;-)

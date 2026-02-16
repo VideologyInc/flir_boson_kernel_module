@@ -1,0 +1,17 @@
+AGC mode    = normal
+Use Entropy = 1
+Tail Outlier Percent     = 0X000000
+Max Gain                 = 0X3FD9999A
+Damping Factor           = 0X42AA0000
+ACE Gamma                = 0X3F7851EC
+Plateau Percent          = 0X41200000
+Linear Percent           = 0X41A00000
+DDE Detail Head Room     = 0X41400000
+DDE detail to background = 0X3F970A3D
+Output Dynamic Range     = 0X43670000
+(first bin, last bin)    = (354, 393)
+Tf Thresholds            = (300, 200)
+Brightness               = 123
+DDE Object Radius        = 1
+DDE details sharpening   = 0X40C00000
+DDE noise suppresion     = 0X3F4CCCCD

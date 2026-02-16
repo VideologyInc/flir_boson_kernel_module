@@ -16,6 +16,8 @@
 #include <linux/slab.h>
 #include <linux/types.h>
 
+#include <linux/videodev2.h>
+
 #include <linux/version.h>
 #include <media/v4l2-async.h>
 #include <media/v4l2-ctrls.h>
@@ -28,7 +30,7 @@
 #include "FunctionCodes.h"
 #include "flir-boson.h"
 
-static int enable_radiometry = 0;
+static int enable_radiometry = 1;
 module_param(enable_radiometry, int, 0644);
 MODULE_PARM_DESC(enable_radiometry, "enable_radiometry");
 
@@ -297,6 +299,119 @@ static int flir_boson_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
 	return 0;
 }
 
+static int flir_set_agc_paramaters(struct flir_boson_dev * sensor)
+{
+	// set agc parameters.
+	union fdata { float f; u32 u; };
+	union fdata plateau; 
+	plateau.f = 3.0f;
+
+	union fdata linear_percent;
+	linear_percent.f = 10.0f;
+
+	union fdata gain;
+	gain.f = 8.0f;
+
+	union fdata gamma;
+	gamma.f = 0.5f;
+
+	union fdata outlier;
+	outlier.f = 0.01f;
+
+	union fdata dde;
+	dde.f = 3.0f;
+
+    FLR_RESULT ret = R_SUCCESS;
+
+	ret = flir_boson_send_int_cmd(sensor, AGC_SETPERCENTPERBIN, plateau.u, 1) &		// plateau value [1, 100, 7]
+		flir_boson_send_int_cmd(sensor, AGC_SETLINEARPERCENT, linear_percent.u, 1) &		// linear percent [1, 100, 20]
+		flir_boson_send_int_cmd(sensor, AGC_SETMAXGAIN, gain.u, 1) &		// max gain [0.25, 8.00, 1.25]
+		flir_boson_send_int_cmd(sensor, AGC_SETGAMMA, gamma.u, 1) &		// ace = gamma [0.5, 4.00, 0.9]
+		flir_boson_send_int_cmd(sensor, AGC_SETOUTLIERCUT, outlier.u, 1) &	// tail = outlier [0.0, 49.0, 0.0]
+		flir_boson_send_int_cmd(sensor, AGC_SETD2BR, dde.u, 1) &		// dde = details to background ratio [0.0, 6.00, 1.3]
+		flir_boson_send_int_cmd(sensor, AGC_SETUSEENTROPY, FLR_ENABLE, 1) &		// use entropy = FLR_ENABLE, use platueau = FLR_DISABLE
+		flir_boson_send_int_cmd(sensor, AGC_SETBRIGHTNESS, 128, 1);		// brightness [0, 255], default = 128
+
+	if (ret != R_SUCCESS) {
+        dev_err(sensor->dev, "FORMAT: Failed to set AGC parameters: %s", flr_result_to_string(ret));
+        ret = flr_result_to_errno(ret);
+    }
+
+	return ret;
+}
+
+static int flir_get_agc_paramaters(struct flir_boson_dev * sensor)
+{
+    FLR_RESULT ret = R_SUCCESS;
+	union fdata { float f; u32 u; };
+
+	union fdata perc_per_bin, lin_perc, outlier, drout, maxgain, damping, gamma, 
+		detailhead, d2br, gmax, gmin;
+	u32 bin_first, bin_last, entropy, agc_mode, brightness, radius;
+
+	ret = flir_boson_get_int_val(sensor, AGC_GETMODE, &agc_mode);	// AGC mode
+	ret &= flir_boson_get_int_val(sensor, AGC_GETUSEENTROPY, &entropy);	// 1 = use entropy, 1 = use plateau
+
+	ret &= flir_boson_get_int_val(sensor, AGC_GETOUTLIERCUT, &outlier.u);	// outlier cut = tail rejection in percentage
+	ret &= flir_boson_get_int_val(sensor, AGC_GETMAXGAIN, &maxgain.u);	// max gain (gain limit per bin)
+	ret &= flir_boson_get_int_val(sensor, AGC_GETDF, &damping.u);	// damping factor
+	ret &= flir_boson_get_int_val(sensor, AGC_GETGAMMA, &gamma.u);	// gamma = ace
+	ret &= flir_boson_get_int_val(sensor, AGC_GETPERCENTPERBIN, &perc_per_bin.u);	// percent per bin = plateau value
+	ret &= flir_boson_get_int_val(sensor, AGC_GETLINEARPERCENT, &lin_perc.u);	// linear percent
+
+	ret &= flir_boson_get_int_val(sensor, AGC_GETDETAILHEADROOM, &detailhead.u);	// DDE detail head room
+	ret &= flir_boson_get_int_val(sensor, AGC_GETD2BR, &d2br.u);	// DDE detail to background ratio
+
+	ret &= flir_boson_get_int_val(sensor, AGC_GETDROUT, &drout.u);	// output dynamic range
+	ret &= flir_boson_get_int_val(sensor, AGC_GETFIRSTBIN, &bin_first);	// first bin
+	ret &= flir_boson_get_int_val(sensor, AGC_GETLASTBIN, &bin_last);	// last bin
+
+	union word_data { u16 th[2]; u32 u;};
+	union word_data tf_thresholds;
+
+	ret &= flir_boson_get_int_val(sensor, AGC_GETTFTHRESHOLDS, &tf_thresholds.u);	// thresholds in threshold mode.
+	ret &= flir_boson_get_int_val(sensor, AGC_GETBRIGHTNESS, &brightness);	// brightness
+
+	ret &= flir_boson_get_int_val(sensor, AGC_GETRADIUS, &radius);	// DDE sharpening radius
+	ret &= flir_boson_get_int_val(sensor, AGC_GETGMAX, &gmax.u);	// DDE sharpening excluding noise
+	ret &= flir_boson_get_int_val(sensor, AGC_GETGMIN, &gmin.u);	// DDE noise supression
+
+	if (ret != R_SUCCESS) {
+        dev_err(sensor->dev, "FORMAT: Failed to get AGC parameters: %s", flr_result_to_string(ret));
+        return flr_result_to_errno(ret);
+    }
+
+	char *message[] = {"normal", "hold", "threshold", "auto bright", "auto linear", "manual"};
+	pr_info("AGC mode    = %s \n", message[agc_mode]);
+	pr_info("Use Entropy = %d \n", entropy);
+
+	// Same order as AGC Presets panel of the Boson Windows GUI ;-) 6 + 2 attributes or parameters
+	pr_info("Tail Outlier Percent     = %#08X \n", outlier.u);
+	pr_info("Max Gain                 = %#08X \n", maxgain.u);
+	pr_info("Damping Factor           = %#08X \n", damping.u);
+	pr_info("ACE Gamma                = %#08X \n", gamma.u);
+	pr_info("Plateau Percent          = %#08X \n", perc_per_bin.u);
+	pr_info("Linear Percent           = %#08X \n", lin_perc.u);
+
+	pr_info("DDE Detail Head Room     = %#08X \n", detailhead.u);
+	pr_info("DDE detail to background = %#08X \n", d2br.u);
+
+	// Other important parameters.
+	pr_info("Output Dynamic Range     = %#08X \n", drout.u);
+	pr_info("(first bin, last bin)    = (%d, %d)\n", bin_first, bin_last);
+	pr_info("Tf Thresholds            = (%d, %d)\n", tf_thresholds.th[0], tf_thresholds.th[1]);
+
+	pr_info("Brightness               = %d \n", brightness);
+
+	// Other DDE parameters (sharpening and noise suppression etc.)
+	pr_info("DDE Object Radius        = %d \n", radius);
+	pr_info("DDE details sharpening   = %#08X \n", gmax.u);
+	pr_info("DDE noise suppresion     = %#08X \n", gmin.u);
+
+	return ret;
+}
+
+
 static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *sd_state, struct v4l2_subdev_format *format) {
     struct flir_boson_dev             *sensor = to_flir_boson_dev(sd);
     const struct flir_boson_format    *new_format;
@@ -375,16 +490,34 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
             goto unlock;
         }
 
+		// Get and show current AGC parameters.
+		ret = flir_get_agc_paramaters(sensor);
+
         /* Setup Linear radiometric mode */
         /* from https://flir.custhelp.com/app/answers/detail/a_id/3387/~/flir-oem---boson-video-and-image-capture-using-opencv-16-bit-y16 */
         if ((new_format->code == MEDIA_BUS_FMT_Y14_1X14) && (enable_radiometry)) {
-            ret = flir_boson_send_int_cmd(sensor, BOSON_SETGAINMODE, FLR_BOSON_HIGH_GAIN, 1);
+
+			ret = flir_boson_send_int_cmd(sensor, BOSON_SETGAINMODE, FLR_BOSON_AUTO_GAIN, 1); //  FLR_BOSON_HIGH_GAIN
             if (ret != R_SUCCESS) {
                 dev_err(sensor->dev, "FORMAT: Failed to set gain mode: %s", flr_result_to_string(ret));
                 ret = flr_result_to_errno(ret);
                 // goto unlock;
             }
-            ret = flir_boson_send_int_cmd(sensor, TLINEAR_SETCONTROL, FLR_ENABLE, 1);
+
+			// newly added set AGC mode: auto bright or auto linear
+			ret = flir_boson_send_int_cmd(sensor, AGC_SETMODE, FLR_AGC_MODE_NORMAL, 1); // FLR_AGC_MODE_AUTO_BRIGHT // FLR_AGC_MODE_AUTO_LINEAR
+
+			if (ret != R_SUCCESS) {
+                dev_err(sensor->dev, "FORMAT: Failed to set AGC mode: %s", flr_result_to_string(ret));
+                ret = flr_result_to_errno(ret);
+                // goto unlock;
+            }
+
+			// set default AGC parameters.
+			// ret = flir_set_agc_paramaters(sensor);
+
+			/*	
+			ret = flir_boson_send_int_cmd(sensor, TLINEAR_SETCONTROL, FLR_ENABLE, 1);
             if (ret != R_SUCCESS) {
                 dev_err(sensor->dev, "FORMAT: Failed to enable linear mode: %s", flr_result_to_string(ret));
                 ret = flr_result_to_errno(ret);
@@ -402,6 +535,7 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
                 ret = flr_result_to_errno(ret);
                 // goto unlock;
             }
+			*/
             u32 dummy;
             ret = flir_boson_get_int_val(sensor, BOSON_RUNFFC, &dummy);
             if (ret != R_SUCCESS) {
@@ -484,6 +618,8 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
     struct fwnode_handle  *endpoint;
 	struct flir_boson_dev *sensor;
     int                    ret;
+
+	pr_info("***** AB1969 Boson Flir Probe starts *****\n");
 
 	dev_info(dev, "FLIR Boson+ MIPI camera driver probing\n");
 	dev_dbg(dev, "PROBE: I2C address=0x%02x", client->addr);

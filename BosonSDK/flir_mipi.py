@@ -27,10 +27,10 @@ def timing_wrapper(func_name):
     return decorator
 
 
-def start_mipi():
+def start_mipi(pad=1):
     """Start MIPI streaming with YUV 4:2:2 configuration"""
     cam = CamAPI.pyClient(
-        manualport=1, useI2C=True, peripheralAddress=0x6A, I2C_TYPE="smbus"
+        manualport=pad, useI2C=True, peripheralAddress=0x6A, I2C_TYPE="smbus"
     )
     try:
         # Execute MIPI startup sequence
@@ -67,10 +67,10 @@ def start_mipi():
     finally:
         cam.Close()
 
-def stop_mipi():
+def stop_mipi(pad=1):
     """Stop MIPI streaming"""
     cam = CamAPI.pyClient(
-        manualport=1, useI2C=True, peripheralAddress=0x6A, I2C_TYPE="smbus"
+        manualport=pad, useI2C=True, peripheralAddress=0x6A, I2C_TYPE="smbus"
     )
 
     try:
@@ -92,12 +92,14 @@ def main():
     parser.add_argument(
         "action", choices=["start", "stop"], help="start or stop MIPI streaming"
     )
+    parser.add_argument("-p", "--port", default=1, type=int, help="I2C pad port to use: 0, 1 (default) or 2. Run i2cdetect to find out which pad has 0x6a.")
+	
     args = parser.parse_args()
 
     if args.action == "start":
-        success = start_mipi()
+        success = start_mipi(args.port)
     else:
-        success = stop_mipi()
+        success = stop_mipi(args.port)
 
     sys.exit(0 if success else 1)
 

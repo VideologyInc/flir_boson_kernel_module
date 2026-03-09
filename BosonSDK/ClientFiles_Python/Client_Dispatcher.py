@@ -4,7 +4,7 @@
 
 
 from .Serializer_BuiltIn import UINT_32ToByte, byteToUINT_32
-from .ReturnCodes import FLR_RESULT, flr_result_to_string
+from .ReturnCodes import FLR_RESULT # , flr_result_to_string
 from .EnumTypes import *
 from time import sleep
 import os

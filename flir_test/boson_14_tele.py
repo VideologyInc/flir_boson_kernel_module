@@ -131,4 +131,4 @@ def boson_show_telemetry(camera_number=0, height=514, prefix=""):
 # main function with boson at /dev/video1
 # boson_show_telemetry(1, 514, "boson_640x514")
 
-boson_show_telemetry(1, 512, "boson_640x512")
+boson_show_telemetry(0, 512, "boson_640x512")

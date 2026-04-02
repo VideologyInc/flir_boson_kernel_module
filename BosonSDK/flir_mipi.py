@@ -42,6 +42,7 @@ def start_mipi(pad=1):
         print("dvoSetType returned:", ret)
         ret = cam.dvoSetOutputFormat(EE.FLR_DVO_OUTPUT_FORMAT_E.FLR_DVO_DEFAULT_FORMAT)
         print("dvoSetOutputFormat returned:", ret)
+
         ret = cam.dvoSetOutputInterface(EE.FLR_DVO_OUTPUT_INTERFACE_E.FLR_DVO_MIPI)
         print("dvoSetOutputInterface returned:", ret)
         ret = cam.dvoSetMipiState(EE.FLR_DVO_MIPI_STATE_E.FLR_DVO_MIPI_STATE_OFF)
@@ -51,6 +52,10 @@ def start_mipi(pad=1):
         print("dvoSetMuxSetType returned:", ret)
         ret = cam.dvoSetMipiClockLaneMode(EE.FLR_DVO_MIPI_CLOCK_LANE_MODE_E.FLR_DVO_MIPI_CLOCK_LANE_MODE_CONTINUOUS)
         print("dvoSetMipiClockLaneMode returned:", ret)
+
+        print("GetType = ", cam.dvoGetType())
+        print("GetOutputFormat = ", cam.dvoGetOutputFormat())
+
         # cam.telemetrySetState(EE.FLR_ENABLE_E.FLR_DISABLE)
         # cam.telemetrySetPacking(EE.FLR_TELEMETRY_PACKING_E.FLR_TELEMETRY_PACKING_DEFAULT)
         # cam.telemetrySetMipiEmbeddedDataTag(EE.FLR_ENABLE_E.FLR_DISABLE)

@@ -73,7 +73,7 @@ static int flr_result_to_errno(FLR_RESULT result)
 /* Works with FOUR-CC values: 'GREY', 'NV12', 'Y16 ', and via CSC: RGB3  */
 /* Supported formats */
 static const struct flir_boson_format flir_boson_formats[] = {
-    // leave YUV format default. The color-scapce-conversion knows how to handle it.
+    // leave YUV format default. The color-space-conversion knows how to handle it.
     {
         .code          = MEDIA_BUS_FMT_UYVY8_1X16,
         .flir_type     = FLR_DVO_TYPE_COLOR,
@@ -619,7 +619,7 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	struct flir_boson_dev *sensor;
     int                    ret;
 
-	pr_info("***** AB1969 Boson Flir Probe starts *****\n");
+	pr_info("***** AB2121 Boson Flir Probe starts *****\n");
 
 	dev_info(dev, "FLIR Boson+ MIPI camera driver probing\n");
 	dev_dbg(dev, "PROBE: I2C address=0x%02x", client->addr);

@@ -17,6 +17,12 @@
 #include "ReturnCodes.h"
 #include "FunctionCodes.h"
 
+// To make accessing boson_clockinfo struct member easier.
+union DataPacket {
+	boson_clockinfo info;
+	u8 bytes[sizeof(boson_clockinfo)];
+};
+
 /* ========================================================================
  * Layer 0: Raw I2C Transport
  * ======================================================================== */
@@ -315,6 +321,25 @@ FLR_RESULT flir_boson_get_int_val(struct flir_boson_dev *sensor, u32 cmd, u32 *v
 
 	return ret;
 }
+
+// Newly added GetClockInfo with 80 bytes return data = 20 values.
+// Make sure info is created before calling this function.
+FLR_RESULT flir_boson_get_clockinfo(struct flir_boson_dev *sensor, struct boson_clockinfo *info)
+{
+	union PacketData rdata;
+	u8 *receive_data = rdata.bytes;
+	u32 receive_bytes = 80;
+	u32 seq_num = ++sensor->command_count;
+	FLR_RESULT ret;
+
+	ret = flir_command_dispatcher(sensor, seq_num, DVO_GETCLOCKINFO, NULL, 0, receive_data, &receive_bytes, 0);
+	if (ret == R_SUCCESS && receive_bytes == 80) {
+		memcpy(info, rdata.info, 80 * 4);
+	}
+
+	return ret;
+}
+
 
 FLR_RESULT flir_boson_set_dvo_muxtype(struct flir_boson_dev *sensor, FLR_DVOMUX_OUTPUT_IF_E output, FLR_DVOMUX_SOURCE_E source, FLR_DVOMUX_TYPE_E type) {
     // Allocate buffers with space for marshalled data

@@ -340,6 +340,24 @@ static int flir_set_agc_paramaters(struct flir_boson_dev * sensor)
 	return ret;
 }
 
+static int flir_get_clockinfo(struct flir_boson_dev * sensor)
+{
+    FLR_RESULT ret = R_SUCCESS;
+	struct boson_clockinfo info;
+	
+	ret = flir_boson_get_clockinfo(sensor, &info);
+
+	if (ret != R_SUCCESS) {
+        dev_err(sensor->dev, "GetClockInfo error: %s", flr_result_to_string(ret));
+        return flr_result_to_errno(ret);
+    }
+
+	pr_info("(videoColumns, videoRows)	= (%d, %d)\n", info.videoColumns, info.videoRows);
+	pr_info("(frameRate, dataWidth)     = (%#08X, %d) \n", info.frameRateInHz, info.dataWidthInBits);
+
+	return ret;
+}
+
 static int flir_get_agc_paramaters(struct flir_boson_dev * sensor)
 {
     FLR_RESULT ret = R_SUCCESS;
@@ -716,6 +734,8 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	}
 
 	/* Get camera serial number */
+	flir_get_clockinfo(sensor);
+	
 	if (flir_boson_get_int_val(sensor, BOSON_GETCAMERASN, &sensor->camera_sn) == R_SUCCESS)
 		dev_info(dev, "Camera SN: 0x%08X", sensor->camera_sn);
 	else

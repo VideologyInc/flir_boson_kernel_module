@@ -78,3 +78,8 @@ def read_agc_hex(name):
 
 
 read_agc_hex("boson_agc.txt")
+
+hx_list = ['0X42700000']
+for hx in hx_list:
+    print(f"{hx} as float: {hex_to_float(hx)}")
+

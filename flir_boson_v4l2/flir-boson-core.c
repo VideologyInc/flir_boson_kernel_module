@@ -340,6 +340,7 @@ static int flir_set_agc_paramaters(struct flir_boson_dev * sensor)
 	return ret;
 }
 
+// return width
 static int flir_get_clockinfo(struct flir_boson_dev * sensor)
 {
     FLR_RESULT ret = R_SUCCESS;
@@ -349,13 +350,13 @@ static int flir_get_clockinfo(struct flir_boson_dev * sensor)
 
 	if (ret != R_SUCCESS) {
         dev_err(sensor->dev, "GetClockInfo error: %s", flr_result_to_string(ret));
-        return flr_result_to_errno(ret);
+        return 640;
     }
 
 	pr_info("(videoColumns, videoRows)	= (%d, %d)\n", info.videoColumns, info.videoRows);
 	pr_info("(frameRate, dataWidth)     = (%#08X, %d) \n", info.frameRateInHz, info.dataWidthInBits);
 
-	return ret;
+	return info.videoColumns;
 }
 
 static int flir_get_agc_paramaters(struct flir_boson_dev * sensor)
@@ -508,8 +509,10 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
             goto unlock;
         }
 
-		// Get and show current AGC parameters.
-		ret = flir_get_agc_paramaters(sensor);
+		// flir_get_clockinfo(sensor);
+
+		// Get and show current AGC parameters. => Should use BosonSDK py program instead.
+		// ret = flir_get_agc_paramaters(sensor);
 
         /* Setup Linear radiometric mode */
         /* from https://flir.custhelp.com/app/answers/detail/a_id/3387/~/flir-oem---boson-video-and-image-capture-using-opencv-16-bit-y16 */
@@ -531,7 +534,7 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
                 // goto unlock;
             }
 
-			// set default AGC parameters.
+			// set default AGC parameters. => Should use BosonSDK py program instead.
 			// ret = flir_set_agc_paramaters(sensor);
 
 			/*	
@@ -637,7 +640,7 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	struct flir_boson_dev *sensor;
     int                    ret;
 
-	pr_info("***** AB2121 Boson Flir Probe starts *****\n");
+	pr_info("***** AB2184 Boson Flir Probe starts *****\n");
 
 	dev_info(dev, "FLIR Boson+ MIPI camera driver probing\n");
 	dev_dbg(dev, "PROBE: I2C address=0x%02x", client->addr);
@@ -651,10 +654,15 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	mutex_init(&sensor->lock);
 	dev_dbg(dev, "PROBE: Device structure initialized");
 
+	int swidth = flir_get_clockinfo(sensor);
+
 	/* Initialize default format */
-    sensor->current_format    = &flir_boson_formats[0];
-	sensor->current_framesize = &flir_boson_framesizes[1]; /* 640x512 */
-    sensor->fmt.code          = sensor->current_format->code;
+	// RAW8 or UYVY ;-)
+    sensor->current_format    = (swidth==320)? &flir_boson_formats[2] : &flir_boson_formats[0];
+	// 320 x 256 or 640 x 512 ;-)
+	sensor->current_framesize = (swidth==320)? &flir_boson_framesizes[0] : &flir_boson_framesizes[1]; 
+
+	sensor->fmt.code          = sensor->current_format->code;
     sensor->fmt.width         = sensor->current_framesize->width;
     sensor->fmt.height        = sensor->current_framesize->height;
     sensor->fmt.field         = V4L2_FIELD_NONE;
@@ -662,7 +670,9 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
     sensor->fmt.ycbcr_enc     = V4L2_MAP_YCBCR_ENC_DEFAULT(sensor->fmt.colorspace);
     sensor->fmt.quantization  = V4L2_QUANTIZATION_FULL_RANGE;
     sensor->fmt.xfer_func     = V4L2_MAP_XFER_FUNC_DEFAULT(sensor->fmt.colorspace);
-    dev_dbg(dev, "PROBE: Default format initialized - %ux%u, code=0x%08x", sensor->fmt.width, sensor->fmt.height, sensor->fmt.code);
+    dev_info(dev, "PROBE: Default format initialized - %ux%u, code=0x%08x", sensor->fmt.width, sensor->fmt.height, sensor->fmt.code);
+
+	flir_get_clockinfo(sensor);
 
 	/* Get reset GPIO */
 	sensor->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);
@@ -734,8 +744,6 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	}
 
 	/* Get camera serial number */
-	flir_get_clockinfo(sensor);
-	
 	if (flir_boson_get_int_val(sensor, BOSON_GETCAMERASN, &sensor->camera_sn) == R_SUCCESS)
 		dev_info(dev, "Camera SN: 0x%08X", sensor->camera_sn);
 	else

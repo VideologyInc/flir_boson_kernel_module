@@ -30,6 +30,7 @@
 #include "FunctionCodes.h"
 #include "flir-boson.h"
 
+static int SENSOR_WIDTH = 0;
 static int enable_radiometry = 1;
 module_param(enable_radiometry, int, 0644);
 MODULE_PARM_DESC(enable_radiometry, "enable_radiometry");
@@ -109,7 +110,7 @@ static const struct flir_boson_format *flir_boson_find_format(struct flir_boson_
     u32 code_search = code;
 
     switch (code) {
-    case MEDIA_BUS_FMT_YUYV8_2X8:
+	case MEDIA_BUS_FMT_YUYV8_2X8:
     case MEDIA_BUS_FMT_YVYU8_2X8:
     case MEDIA_BUS_FMT_UYVY8_2X8:
     case MEDIA_BUS_FMT_UYVY8_1X16:
@@ -126,7 +127,9 @@ static const struct flir_boson_format *flir_boson_find_format(struct flir_boson_
 	}
 
     dev_dbg(sensor->dev, "FORMAT: Unsupported format code 0x%08X. returning default", code);
-	return &flir_boson_formats[0]; /* Default to first format */
+
+	// Default to RAW8 or UYVY
+	return &flir_boson_formats[0];
 }
 
 static const struct flir_boson_framesize *flir_boson_find_framesize(u32 width, u32 height) {
@@ -136,7 +139,8 @@ static const struct flir_boson_framesize *flir_boson_find_framesize(u32 width, u
         if (flir_boson_framesizes[i].width == width && flir_boson_framesizes[i].height == height) return &flir_boson_framesizes[i];
 	}
 
-    return &flir_boson_framesizes[1]; /* Default to 640x512 */
+	// Default to 320 x 256 or 640 x 512
+    return (SENSOR_WIDTH==320)? &flir_boson_framesizes[0] : &flir_boson_framesizes[1];
 }
 
 /* V4L2 Subdev Core Operations */
@@ -259,7 +263,18 @@ static int flir_boson_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_
 static int flir_boson_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_state *sd_state, struct v4l2_subdev_frame_size_enum *fse) {
     if (fse->pad != 0 || fse->index >= FLIR_BOSON_NUM_FRAMESIZES) return -EINVAL;
 
-    if (!flir_boson_find_format(to_flir_boson_dev(sd), fse->code)) return -EINVAL;
+	const struct flir_boson_format *cformat = flir_boson_find_format(to_flir_boson_dev(sd), fse->code);
+    if (!cformat) return -EINVAL;
+
+	// Treat sensor width 320 specially by removing some formats for certain frame sizes
+	if (SENSOR_WIDTH==320) {
+		// Gray is only for 320 x 256
+		int w = flir_boson_framesizes[fse->index].width;
+		if ((strcmp(cformat->name, "RAW8")==0 || strcmp(cformat->name, "RAW14")==0) && w==640 )  return -EINVAL;
+
+		// Color is only for 640 x 512 or 514.
+		// if (strcmp(cformat->name, "UYVY")==0 && w==320 )  return -EINVAL;
+	}
 
 	dev_dbg(to_flir_boson_dev(sd)->dev, "ENUM_FRAME_SIZE: index=%u", fse->index);
 	fse->min_width = fse->max_width = flir_boson_framesizes[fse->index].width;
@@ -293,7 +308,7 @@ static int flir_boson_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
     format->format = sensor->fmt;
 
 	dev_dbg(sensor->dev, "FORMAT: Getting current format - powered=%d, streaming=%d", sensor->powered, sensor->streaming);
-    dev_dbg(sensor->dev, "FORMAT: Getting format - code=0x%08X, width=%u, height=%u, color=%d", format->format.code, format->format.width,
+    dev_info(sensor->dev, "FORMAT: Getting format - code=0x%08X, width=%u, height=%u, color=%d", format->format.code, format->format.width,
             format->format.height, format->format.colorspace);
 
 	return 0;
@@ -467,7 +482,7 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
 	}
 
 	/* Apply format if necessary and different from current */
-	if (1) { // sensor->powered && (new_format != sensor->current_format || new_framesize != sensor->current_framesize)) {
+	if (true) { // sensor->powered && (new_format != sensor->current_format || new_framesize != sensor->current_framesize)) {
 
 		dev_dbg(sensor->dev, "FORMAT: Format change required - applying new settings");
 
@@ -509,11 +524,6 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
             goto unlock;
         }
 
-		// flir_get_clockinfo(sensor);
-
-		// Get and show current AGC parameters. => Should use BosonSDK py program instead.
-		// ret = flir_get_agc_paramaters(sensor);
-
         /* Setup Linear radiometric mode */
         /* from https://flir.custhelp.com/app/answers/detail/a_id/3387/~/flir-oem---boson-video-and-image-capture-using-opencv-16-bit-y16 */
         if ((new_format->code == MEDIA_BUS_FMT_Y14_1X14) && (enable_radiometry)) {
@@ -534,29 +544,6 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
                 // goto unlock;
             }
 
-			// set default AGC parameters. => Should use BosonSDK py program instead.
-			// ret = flir_set_agc_paramaters(sensor);
-
-			/*	
-			ret = flir_boson_send_int_cmd(sensor, TLINEAR_SETCONTROL, FLR_ENABLE, 1);
-            if (ret != R_SUCCESS) {
-                dev_err(sensor->dev, "FORMAT: Failed to enable linear mode: %s", flr_result_to_string(ret));
-                ret = flr_result_to_errno(ret);
-                // goto unlock;
-            }
-            ret = flir_boson_send_int_cmd(sensor, RADIOMETRY_SETTRANSMISSIONWINDOW, 100, 1);
-            if (ret != R_SUCCESS) {
-                dev_err(sensor->dev, "FORMAT: Failed to set transmission window: %s", flr_result_to_string(ret));
-                ret = flr_result_to_errno(ret);
-                // goto unlock;
-            }
-            ret = flir_boson_send_int_cmd(sensor, TLINEAR_REFRESHLUT, FLR_BOSON_HIGH_GAIN, 1);
-            if (ret != R_SUCCESS) {
-                dev_err(sensor->dev, "FORMAT: Failed to refresh LUT: %s", flr_result_to_string(ret));
-                ret = flr_result_to_errno(ret);
-                // goto unlock;
-            }
-			*/
             u32 dummy;
             ret = flir_boson_get_int_val(sensor, BOSON_RUNFFC, &dummy);
             if (ret != R_SUCCESS) {
@@ -654,13 +641,13 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	mutex_init(&sensor->lock);
 	dev_dbg(dev, "PROBE: Device structure initialized");
 
-	int swidth = flir_get_clockinfo(sensor);
+	SENSOR_WIDTH = flir_get_clockinfo(sensor);
 
 	/* Initialize default format */
 	// RAW8 or UYVY ;-)
-    sensor->current_format    = (swidth==320)? &flir_boson_formats[2] : &flir_boson_formats[0];
+    sensor->current_format    = (SENSOR_WIDTH==320)? &flir_boson_formats[2] : &flir_boson_formats[0];
 	// 320 x 256 or 640 x 512 ;-)
-	sensor->current_framesize = (swidth==320)? &flir_boson_framesizes[0] : &flir_boson_framesizes[1]; 
+	sensor->current_framesize = (SENSOR_WIDTH==320)? &flir_boson_framesizes[0] : &flir_boson_framesizes[1]; 
 
 	sensor->fmt.code          = sensor->current_format->code;
     sensor->fmt.width         = sensor->current_framesize->width;

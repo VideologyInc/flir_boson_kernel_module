@@ -84,6 +84,23 @@ u8 fslp_rx_buf[FLIR_FSLP_MAX_DATA];
 u32 command_count; /* Sequence number for commands */
 };
 
+// Results of 80 bytes data = 20 values of uint32 and float from GetClockInfo command.
+struct boson_clockinfo {
+	// 3 uint32 values
+	u32 horizontalSyncWidth, verticalSyncWidth, clocksPerRowPeriod;
+	// 4 uint32 values
+	u32 horizontalFrontPorch, horizontalBackPorch, frontTelemetryPixels, rearTelemetryPixels;
+	// Very important 5 uint32 values
+	u32 videoColumns, validColumns, telemetryRows, videoRows, validRows;
+	// 3 uint32 values
+	u32 verticalFrontPorch, verticalBackPorch, rowPeriodsPerFrame;
+	// 2 = 1 uint32 + 1 float value (must use uint32 for now and decypher later ;-)
+	u32 clocksPerFrame, clockRateInMHz;
+	// 3 = 1 float + 2 uint32 values.
+	u32 frameRateInHz, validOnRisingEdge, dataWidthInBits;
+};
+
+
 /* IOCTL Commands */
 #define FLIR_BOSON_IOCTL_FSLP_FRAME   _IOWR('F', 0x01, struct flir_boson_ioctl_fslp)
 #define FLIR_BOSON_IOCTL_GET_STATUS   _IOR('F', 0x03, u32)
@@ -95,6 +112,10 @@ FLR_RESULT I2C_writeFrame(struct flir_boson_dev *sensor, u8* writeData, u32 writ
 /* Layer 3: Command Packagers (SDK-compatible API) */
 FLR_RESULT flir_boson_send_int_cmd(struct flir_boson_dev *sensor, u32 cmd, u32 val, u32 delay_ms);
 FLR_RESULT flir_boson_get_int_val(struct flir_boson_dev *sensor, u32 cmd, u32 *val);
+
+// Newly added GetClockInfo with 80 bytes return data = 20 values.
+FLR_RESULT flir_boson_get_clockinfo(struct flir_boson_dev *sensor, struct boson_clockinfo *info);
+
 FLR_RESULT flir_boson_get_dvo_muxtype(struct flir_boson_dev *sensor, FLR_DVOMUX_OUTPUT_IF_E output, FLR_DVOMUX_SOURCE_E *source, FLR_DVOMUX_TYPE_E *type);
 FLR_RESULT flir_boson_set_dvo_muxtype(struct flir_boson_dev *sensor, FLR_DVOMUX_OUTPUT_IF_E output, FLR_DVOMUX_SOURCE_E source, FLR_DVOMUX_TYPE_E type);
 

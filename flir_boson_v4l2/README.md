@@ -1,7 +1,7 @@
 ## Flir Boson Device Driver on Scailx
 
 ***
-#### How to build and test the device from this repository driver on Scailx device.
+#### How to build and test the device driver from this repository on Scailx device.
 
 #### 1. Follow steps same as Global Shutter camera ar0234's kernel driver build preparation on Scailx Device.
 	
@@ -30,6 +30,8 @@
 ####	After Scailx reboots, wait for a few seconds. 
 ####	'lsmod' to see loaded driver modules if a Boson camera sensor is connected to csi1.
 ####	Make sure "imx8_media_dev" and "flir_boson" is on the list.
+
+***
 
 ####	3.2. Run some basic v4l2 commands to show Boson camera info.
  

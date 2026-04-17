@@ -3,7 +3,7 @@
 ***
 #### How to build and test the device driver from this repository on Scailx device.
 
-#### 1. Follow steps same as Global Shutter camera ar0234's kernel driver build preparation on Scailx Device.
+#### Step 1. Follow steps same as Global Shutter camera ar0234's kernel driver build preparation on Scailx Device.
 	
 ####	'cd /usr/src/kernel'
 ####	'gunzip < /proc/config.gz > .config'
@@ -11,14 +11,16 @@
 ####	'make prepare'
 ####	'make scripts'
 
-#### 2. Now checkout this flir boson kernel repository into Scailx device.
+#### Step 2. Now checkout this flir boson kernel repository into Scailx device.
 
 ####	'cd /root/flir_boson_kernel_module/flir_boson_v4l2'
 ####	'make'
 	
 ####	If no errors, 'make modules_install' to install the new Boson device driver.
 
-#### 3. Test the new driver.
+***
+
+#### Step 3. Test the new driver.
 	
 ####	3.1. First make sure the new driver ko file is in place.
 	
@@ -40,6 +42,8 @@
 
 ####	'v4l2-ctl -d /dev/video0 --list-formats-ext'
 ####	Please use correct Boson camera path in previous step, /de/video0, /dev/video1, etc.
+
+***
 
 ####	3.3. Run bash script or equivalent similar gst-launch command to see camera video stream on web 8091 port.
 

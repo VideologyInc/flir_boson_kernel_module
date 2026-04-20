@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: MIT
 /*
  * FLIR Boson+ MIPI Camera V4L2 Driver
- * Copyright (C) 2025 VideologyInc
+ * Copyright (C) 2025-2026 VideologyInc
+ * Created by Kobus Goosen in Dec 2025.
+ * Modified Jianping Ye <jye@videologyinc.com>
+ *
+ *	2026.0416.	Added calling ClockInfo() to detect Boson sensor dimension.
+ *	2026.0417.	Cleaned up supported video formats by different Boson sensors - 320 and 640.
  */
 
 #include <linux/delay.h>
@@ -96,10 +101,11 @@ static const struct flir_boson_format flir_boson_formats[] = {
 };
 
 /* Supported frame sizes */
+// Use reverse order of dimensions to make 640 color formats pass.
 static const struct flir_boson_framesize flir_boson_framesizes[] = {
-    {.width = 320, .height = 256, .max_fps = 60},
-    {.width = 640, .height = 512, .max_fps = 60},
     {.width = 640, .height = 514, .max_fps = 60}, // add telementry Line
+    {.width = 640, .height = 512, .max_fps = 60},
+    {.width = 320, .height = 256, .max_fps = 60},
 };
 
 #define FLIR_BOSON_NUM_FORMATS ARRAY_SIZE(flir_boson_formats)
@@ -110,6 +116,8 @@ static const struct flir_boson_format *flir_boson_find_format(struct flir_boson_
     u32 code_search = code;
 
     switch (code) {
+	case MEDIA_BUS_FMT_YUV8_1X24:
+
 	case MEDIA_BUS_FMT_YUYV8_2X8:
     case MEDIA_BUS_FMT_YVYU8_2X8:
     case MEDIA_BUS_FMT_UYVY8_2X8:
@@ -120,7 +128,9 @@ static const struct flir_boson_format *flir_boson_find_format(struct flir_boson_
     case MEDIA_BUS_FMT_Y10_1X10:
     case MEDIA_BUS_FMT_Y12_1X12:
     case MEDIA_BUS_FMT_Y16_1X16: code_search = MEDIA_BUS_FMT_Y14_1X14; break;
-    default: code_search = code;
+	case MEDIA_BUS_FMT_Y8_1X8: code_search = MEDIA_BUS_FMT_Y8_1X8; break;
+
+	default: code_search = code;
     }
 	for (i = 0; i < FLIR_BOSON_NUM_FORMATS; i++) {
         if (flir_boson_formats[i].code == code_search) return &flir_boson_formats[i];
@@ -140,7 +150,7 @@ static const struct flir_boson_framesize *flir_boson_find_framesize(u32 width, u
 	}
 
 	// Default to 320 x 256 or 640 x 512
-    return (SENSOR_WIDTH==320)? &flir_boson_framesizes[0] : &flir_boson_framesizes[1];
+    return NULL; // (SENSOR_WIDTH==320)? &flir_boson_framesizes[0] : &flir_boson_framesizes[1];
 }
 
 /* V4L2 Subdev Core Operations */
@@ -252,28 +262,45 @@ static int flir_boson_s_stream(struct v4l2_subdev *sd, int enable) {
 }
 
 /* V4L2 Subdev Pad Operations */
+// Iterates over supported pixel formats.
 static int flir_boson_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_state *sd_state, struct v4l2_subdev_mbus_code_enum *code) {
-    if (code->pad != 0 || code->index >= FLIR_BOSON_NUM_FORMATS) return -EINVAL;
+//    if (code->pad != 0 || code->index >= FLIR_BOSON_NUM_FORMATS) return -EINVAL;
+	if (code->pad != 0) return -EINVAL;
 
-	dev_dbg(to_flir_boson_dev(sd)->dev, "ENUM_MBUS_CODE: index=%u", code->index);
-	code->code = flir_boson_formats[code->index].code;
+	const struct flir_boson_format *cformat = flir_boson_find_format(to_flir_boson_dev(sd), code->code);
+	// pr_info("ENUM_MBUS_CODE: index=%u, code=%d, mapped code=%d", code->index, code->code, cformat->code);
+
+	code->code = cformat->code; // flir_boson_formats[code->index].code;
 	return 0;
 }
 
+// Iterates over supported sizes for a format.
+// Core function to make v4l2-ctl --list-formats-ext detect supported video formats and resolutions.
 static int flir_boson_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev_state *sd_state, struct v4l2_subdev_frame_size_enum *fse) {
     if (fse->pad != 0 || fse->index >= FLIR_BOSON_NUM_FRAMESIZES) return -EINVAL;
 
 	const struct flir_boson_format *cformat = flir_boson_find_format(to_flir_boson_dev(sd), fse->code);
     if (!cformat) return -EINVAL;
 
-	// Treat sensor width 320 specially by removing some formats for certain frame sizes
-	if (SENSOR_WIDTH==320) {
-		// Gray is only for 320 x 256
-		int w = flir_boson_framesizes[fse->index].width;
-		if ((strcmp(cformat->name, "RAW8")==0 || strcmp(cformat->name, "RAW14")==0) && w==640 )  return -EINVAL;
+	int w = flir_boson_framesizes[fse->index].width;
 
-		// Color is only for 640 x 512 or 514.
-		// if (strcmp(cformat->name, "UYVY")==0 && w==320 )  return -EINVAL;
+	// CANNOT just return -EINVAL because rest good sizes on the list will be missing ;-)
+	// Treat sensor width 320 and 640 separately specially.
+	// Gray16 format:  format width should match sensor width.
+	// Must return 0 now for sensor width==320 to avoid early break of 640.
+	if ((strcmp(cformat->name, "RAW14")==0) && (w != SENSOR_WIDTH))  {
+		return (SENSOR_WIDTH==640)? -EINVAL : 0 ;
+	}
+
+	// Gray8 format:  format width should match sensor width.
+	// Must return 0 now for sensor width==320 to avoid early break of 640.
+	if ((strcmp(cformat->name, "RAW8")==0) && (w != SENSOR_WIDTH))  {
+		return (SENSOR_WIDTH==640)? -EINVAL : 0;
+	}
+
+	// Color formats: only support 640 x 512 and 640 x 514 for both sensor==320 and 640.
+	if ((strcmp(cformat->name, "UYVY")==0) && (w==320) )  {
+		return -EINVAL;
 	}
 
 	dev_dbg(to_flir_boson_dev(sd)->dev, "ENUM_FRAME_SIZE: index=%u", fse->index);
@@ -283,6 +310,7 @@ static int flir_boson_enum_frame_size(struct v4l2_subdev *sd, struct v4l2_subdev
 	return 0;
 }
 
+// Iterates over supported FPS.
 static int flir_boson_enum_frame_interval(struct v4l2_subdev *sd, struct v4l2_subdev_state *sd_state, struct v4l2_subdev_frame_interval_enum *fie) {
 	const struct flir_boson_framesize *framesize;
 
@@ -293,7 +321,7 @@ static int flir_boson_enum_frame_interval(struct v4l2_subdev *sd, struct v4l2_su
 	framesize = flir_boson_find_framesize(fie->width, fie->height);
     if (!framesize) return -EINVAL;
 
-	dev_dbg(to_flir_boson_dev(sd)->dev, "ENUM_FRAME_INTERVAL: width=%u, height=%u", fie->width, fie->height);
+	// pr_info("ENUM_FRAME_INTERVAL: width=%u, height=%u", fie->width, fie->height);
     fie->interval.numerator   = 1;
 	fie->interval.denominator = framesize->max_fps;
 
@@ -308,8 +336,8 @@ static int flir_boson_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
     format->format = sensor->fmt;
 
 	dev_dbg(sensor->dev, "FORMAT: Getting current format - powered=%d, streaming=%d", sensor->powered, sensor->streaming);
-    dev_info(sensor->dev, "FORMAT: Getting format - code=0x%08X, width=%u, height=%u, color=%d", format->format.code, format->format.width,
-            format->format.height, format->format.colorspace);
+    // dev_info(sensor->dev, "FORMAT: Getting format - code=0x%08X, width=%u, height=%u, color=%d", format->format.code, format->format.width,
+    //	format->format.height, format->format.colorspace);
 
 	return 0;
 }
@@ -453,12 +481,13 @@ static int flir_boson_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_state *
     FLR_RESULT                         ret = R_SUCCESS;
 
     if (format->pad != 0) return -EINVAL;
+	if (format->format.width==0 || format->format.height==0)  return -EINVAL;
 
     new_format    = flir_boson_find_format(sensor, format->format.code);
 	new_framesize = flir_boson_find_framesize(format->format.width, format->format.height);
 
-	dev_dbg(sensor->dev, "FORMAT: Setting format - code=0x%08X, width=%u, height=%u", format->format.code, format->format.width, format->format.height);
-	dev_dbg(sensor->dev, "FORMAT: New format type=%u, current powered=%d, streaming=%d", new_format->flir_type, sensor->powered, sensor->streaming);
+	// pr_info("FORMAT: Setting format - code=0x%08X, width=%u, height=%u", format->format.code, format->format.width, format->format.height);
+	// pr_info("FORMAT: New format type=%u, current powered=%d, streaming=%d", new_format->flir_type, sensor->powered, sensor->streaming);
 
     if (format->which == V4L2_SUBDEV_FORMAT_TRY) {
         struct v4l2_mbus_framefmt *try_fmt = v4l2_subdev_get_try_format(sd, sd_state, format->pad);
@@ -627,7 +656,7 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
 	struct flir_boson_dev *sensor;
     int                    ret;
 
-	pr_info("***** AB2184 Boson Flir Probe starts *****\n");
+	pr_info("***** AB2219 Boson Flir Probe starts *****\n");
 
 	dev_info(dev, "FLIR Boson+ MIPI camera driver probing\n");
 	dev_dbg(dev, "PROBE: I2C address=0x%02x", client->addr);
@@ -658,8 +687,6 @@ static int flir_boson_probe(struct i2c_client *client, const struct i2c_device_i
     sensor->fmt.quantization  = V4L2_QUANTIZATION_FULL_RANGE;
     sensor->fmt.xfer_func     = V4L2_MAP_XFER_FUNC_DEFAULT(sensor->fmt.colorspace);
     dev_info(dev, "PROBE: Default format initialized - %ux%u, code=0x%08x", sensor->fmt.width, sensor->fmt.height, sensor->fmt.code);
-
-	flir_get_clockinfo(sensor);
 
 	/* Get reset GPIO */
 	sensor->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_LOW);

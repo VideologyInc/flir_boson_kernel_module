@@ -132,7 +132,7 @@ int flir_fslp_read_frame(struct flir_boson_dev *sensor, u8 *payload, u32 expecte
 	payload_len = (header[2] << 8) | header[3];
 
 	if (payload_len != expected_len) {
-		dev_warn(sensor->dev, "Length mismatch: declared %u, expected %u\n", payload_len, expected_len);
+		// dev_warn(sensor->dev, "Length mismatch: declared %u, expected %u\n", payload_len, expected_len);
 	}
 
 	/* Read payload data */

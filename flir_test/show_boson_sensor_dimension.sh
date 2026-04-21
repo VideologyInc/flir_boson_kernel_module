@@ -2,5 +2,5 @@
 
 echo "Show Boson sensor dimension from ClockInfo"
 
-dmesg | grep -A 2 -i "ClockInfo"
+journalctl -b | grep -A 2 -i "ClockInfo"
 
